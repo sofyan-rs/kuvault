@@ -18,6 +18,8 @@ import {
 } from "~/components/ui/select"
 import { AddGameDialog } from "~/features/add-game/components/add-game-dialog"
 import { ScanResultsDialog } from "~/features/scan/components/scan-results-dialog"
+import { FocusZone } from "~/lib/gamepad/focus-zone"
+import { useRegisterGamepadSearch } from "~/lib/gamepad/gamepad-navigation-provider"
 import type { Game } from "~/lib/db-types"
 import { cn } from "~/lib/utils"
 
@@ -39,6 +41,9 @@ interface Props {
   onViewChange: (value: ViewMode) => void
   games: Game[]
   onImported: () => void
+  genres: string[]
+  activeGenre: string | null
+  onGenreChange: (genre: string | null) => void
 }
 
 export function LibraryToolbar({
@@ -51,17 +56,22 @@ export function LibraryToolbar({
   onViewChange,
   games,
   onImported,
+  genres,
+  activeGenre,
+  onGenreChange,
 }: Props) {
   const [scanSteamOpen, setScanSteamOpen] = useState(false)
   const [scanEpicOpen, setScanEpicOpen] = useState(false)
   const [addManuallyOpen, setAddManuallyOpen] = useState(false)
+  useRegisterGamepadSearch()
 
   return (
-    <div className="flex flex-col gap-3">
+    <FocusZone id="toolbar" className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <div className="relative max-w-sm flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            data-gamepad-search
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search games..."
@@ -119,6 +129,27 @@ export function LibraryToolbar({
         <p className="text-sm text-muted-foreground">{count} games</p>
 
         <div className="flex items-center gap-2">
+          {genres.length > 0 ? (
+            <Select
+              value={activeGenre ?? "all"}
+              onValueChange={(v) => onGenreChange(v === "all" ? null : v)}
+            >
+              <SelectTrigger size="sm" className="w-36">
+                <SelectValue>
+                  {(value: string) => (value === "all" ? "All categories" : value)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {genres.map((genre) => (
+                  <SelectItem key={genre} value={genre}>
+                    {genre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+
           <Select
             value={sort}
             onValueChange={(v) => onSortChange(v as SortKey)}
@@ -165,6 +196,6 @@ export function LibraryToolbar({
           </div>
         </div>
       </div>
-    </div>
+    </FocusZone>
   )
 }

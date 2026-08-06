@@ -12,7 +12,12 @@ import "./app.css"
 import { ExternalLinkGuard } from "./components/external-link-guard"
 import { DebugPanel } from "./components/debug-panel"
 import { Toaster } from "./components/ui/sonner"
+import { GamepadHintBar } from "./lib/gamepad/gamepad-hint-bar"
+import { GamepadNavigationProvider } from "./lib/gamepad/gamepad-navigation-provider"
+import { VirtualKeyboard } from "./lib/gamepad/virtual-keyboard"
+import { RunningGamesProvider } from "./lib/running-games"
 import { themeInitScript } from "./lib/theme"
+import { uiScaleInitScript } from "./lib/ui-scale"
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -23,11 +28,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: uiScaleInitScript }} />
       </head>
       <body>
         <ExternalLinkGuard />
         {import.meta.env.DEV ? <DebugPanel /> : null}
-        {children}
+        <RunningGamesProvider>
+          <GamepadNavigationProvider>
+            {children}
+            <GamepadHintBar />
+            <VirtualKeyboard />
+          </GamepadNavigationProvider>
+        </RunningGamesProvider>
         <Toaster position="bottom-right" />
         <ScrollRestoration />
         <Scripts />

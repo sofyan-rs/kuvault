@@ -17,6 +17,8 @@
         "title": "KuVault-Tauri",
         "width": 1400,
         "height": 918,
+        "minWidth": 1024,
+        "minHeight": 640,
         "center": true,
         "visible": false
       }

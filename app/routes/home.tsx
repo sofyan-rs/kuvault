@@ -32,13 +32,7 @@ export default function Home() {
 
   return (
     <div className="flex h-svh">
-      <LibrarySidebar
-        filter={filter}
-        onFilterChange={setFilter}
-        genres={genres}
-        activeGenre={genre}
-        onGenreChange={setGenre}
-      />
+      <LibrarySidebar filter={filter} onFilterChange={setFilter} games={games} />
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
         <LibraryToolbar
@@ -51,12 +45,15 @@ export default function Home() {
           onViewChange={setView}
           games={games}
           onImported={refresh}
+          genres={genres}
+          activeGenre={genre}
+          onGenreChange={setGenre}
         />
 
         {loading ? (
           <p className="py-24 text-center text-sm text-muted-foreground">Loading library...</p>
         ) : (
-          <LibraryGrid games={filteredGames} view={view} />
+          <LibraryGrid games={filteredGames} view={view} onChange={refresh} />
         )}
       </div>
     </div>

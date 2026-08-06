@@ -39,6 +39,11 @@ async fn steamgriddb_cover_for_steam_appid(appid: String, api_key: String) -> Re
 }
 
 #[tauri::command]
+async fn resolve_steam_vanity_url(api_key: String, vanity: String) -> Result<Option<String>, String> {
+    steam_api::resolve_vanity_url(api_key, vanity).await
+}
+
+#[tauri::command]
 async fn get_steam_owned_playtimes(
     api_key: String,
     steam_id: String,
@@ -53,8 +58,14 @@ fn launch_game(
     platform: String,
     executable_path: String,
     launch_args: Option<String>,
+    install_dir: Option<String>,
 ) -> Result<(), String> {
-    launcher::launch(app, id, platform, executable_path, launch_args)
+    launcher::launch(app, id, platform, executable_path, launch_args, install_dir)
+}
+
+#[tauri::command]
+fn stop_game(id: i64, install_dir: Option<String>) -> Result<(), String> {
+    launcher::stop(id, install_dir)
 }
 
 fn external_navigation_plugin<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
@@ -111,7 +122,9 @@ pub fn run() {
             search_steamgriddb_covers,
             steamgriddb_cover_for_steam_appid,
             get_steam_owned_playtimes,
-            launch_game
+            resolve_steam_vanity_url,
+            launch_game,
+            stop_game
         ])
         .on_page_load(|webview, payload| {
             if webview.label() == "main" && matches!(payload.event(), PageLoadEvent::Finished) {

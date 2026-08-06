@@ -5,6 +5,7 @@ import { toast } from "sonner"
 
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
+import { DialogFooter } from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import {
@@ -38,11 +39,15 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
 
   const [name, setName] = useState(game?.name ?? "")
   const [platform, setPlatform] = useState<Platform>(game?.platform ?? "manual")
-  const [executablePath, setExecutablePath] = useState(game?.executable_path ?? "")
+  const [executablePath, setExecutablePath] = useState(
+    game?.executable_path ?? ""
+  )
   const [launchArgs, setLaunchArgs] = useState(game?.launch_args ?? "")
   const [genres, setGenres] = useState(game?.genres ?? "")
   const [description, setDescription] = useState(game?.description ?? "")
-  const [coverUrl, setCoverUrl] = useState<string | null>(game?.cover_url ?? null)
+  const [coverUrl, setCoverUrl] = useState<string | null>(
+    game?.cover_url ?? null
+  )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -131,13 +136,21 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="name">Name</Label>
-        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
       </div>
 
       {!isScanned ? (
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="platform">Platform</Label>
-          <Select value={platform} onValueChange={(v) => setPlatform(v as Platform)}>
+          <Select
+            value={platform}
+            onValueChange={(v) => setPlatform(v as Platform)}
+          >
             <SelectTrigger id="platform">
               <SelectValue>
                 {(value: "manual" | "emulator") => PLATFORM_LABELS[value]}
@@ -165,7 +178,11 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
 
       <div className="flex flex-col gap-1.5">
         <Label>Cover art</Label>
-        <CoverPicker defaultQuery={name} coverUrl={coverUrl} onSelect={setCoverUrl} />
+        <CoverPicker
+          defaultQuery={name}
+          coverUrl={coverUrl}
+          onSelect={setCoverUrl}
+        />
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -174,9 +191,11 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
           id="genres"
           value={genres}
           onChange={(e) => setGenres(e.target.value)}
-          placeholder="RPG, Adventure"
+          placeholder="Open-world, Emulation, Racing, etc."
         />
-        <p className="text-xs text-muted-foreground">Comma-separated, any custom tags you like.</p>
+        <p className="text-xs text-muted-foreground">
+          Comma-separated, any custom tags you like.
+        </p>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -191,7 +210,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <div className="flex gap-2">
+      <DialogFooter>
         <Button type="submit" disabled={submitting}>
           {submitting ? "Saving..." : isEditing ? "Save Changes" : "Add Game"}
         </Button>
@@ -205,7 +224,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
         >
           Cancel
         </Button>
-      </div>
+      </DialogFooter>
     </form>
   )
 }

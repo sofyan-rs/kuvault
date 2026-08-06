@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "~/components/ui/button"
@@ -41,11 +41,18 @@ export function ScanResultsDialog({
   const { results, loading, error, scan } = useScan(platform)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [importing, setImporting] = useState(false)
+  const selectAllRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (open) scan()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
+
+  // Base UI's dialog auto-focus fires once on mount, while only the close button is
+  // focusable (scan still loading) — move focus to the first real action once it renders.
+  useEffect(() => {
+    if (open && !loading) selectAllRef.current?.focus()
+  }, [open, loading])
 
   const existingIds = new Set(
     existingGames.filter((g) => g.platform === platform).map((g) => g.source_id),
@@ -165,7 +172,7 @@ export function ScanResultsDialog({
         ) : (
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={selectAll}>
+              <Button ref={selectAllRef} type="button" variant="ghost" size="sm" onClick={selectAll}>
                 Select all
               </Button>
               <Button type="button" variant="ghost" size="sm" onClick={deselectAll}>
@@ -174,16 +181,21 @@ export function ScanResultsDialog({
             </div>
             <div className="flex max-h-80 flex-col gap-1 overflow-y-auto">
               {newGames.map((game) => (
-                <label
+                <button
                   key={game.source_id}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
+                  type="button"
+                  data-focus-style="border"
+                  onClick={() => toggle(game.source_id)}
+                  className="relative flex w-full items-center gap-2 rounded-md border-3 border-transparent px-2 py-1.5 text-left text-sm hover:bg-muted focus:outline-none data-[gamepad-active=true]:border-primary data-[gamepad-active=true]:bg-muted"
                 >
                   <Checkbox
+                    tabIndex={-1}
                     checked={selected.has(game.source_id)}
                     onCheckedChange={() => toggle(game.source_id)}
+                    className="pointer-events-none"
                   />
                   {game.name}
-                </label>
+                </button>
               ))}
             </div>
           </div>

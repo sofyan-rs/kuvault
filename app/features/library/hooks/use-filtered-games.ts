@@ -15,6 +15,7 @@ export function useFilteredGames({ games, filter, genre, search, sort }: Options
     let result = games
 
     if (filter === "favorites") result = result.filter((g) => g.is_favorite === 1)
+    else if (filter === "steam" || filter === "epic") result = result.filter((g) => g.platform === filter)
 
     if (genre) {
       result = result.filter((g) =>

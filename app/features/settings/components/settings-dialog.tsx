@@ -14,6 +14,7 @@ import { getSetting, setSetting } from "~/lib/db"
 import { STEAM_API_KEY_SETTING, STEAM_ID_SETTING, SteamApiForm } from "./steam-api-form"
 import { STEAMGRIDDB_KEY_SETTING, SteamGridDbKeyForm } from "./steamgriddb-key-form"
 import { ThemeSelect } from "./theme-select"
+import { UiScaleSlider } from "./ui-scale-slider"
 
 interface Props {
   open: boolean
@@ -65,6 +66,7 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
         <div className="flex flex-col gap-6">
           <ThemeSelect />
+          <UiScaleSlider />
           <SteamGridDbKeyForm value={gridDbKey} onChange={setGridDbKey} disabled={loading} />
           <SteamApiForm
             apiKey={steamApiKey}

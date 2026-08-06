@@ -1,10 +1,19 @@
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table"
+import { FocusZone } from "~/lib/gamepad/focus-zone"
 
 import { GameCard } from "./game-card"
 import { GameListRow } from "./game-list-row"
 import type { Game, ViewMode } from "../types"
 
-export function LibraryGrid({ games, view }: { games: Game[]; view: ViewMode }) {
+export function LibraryGrid({
+  games,
+  view,
+  onChange,
+}: {
+  games: Game[]
+  view: ViewMode
+  onChange: () => void
+}) {
   if (games.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-1 py-24 text-center">
@@ -18,29 +27,35 @@ export function LibraryGrid({ games, view }: { games: Game[]; view: ViewMode }) 
 
   if (view === "list") {
     return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Platform</TableHead>
-            <TableHead>Playtime</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {games.map((game) => (
-            <GameListRow key={game.id} game={game} />
-          ))}
-        </TableBody>
-      </Table>
+      <FocusZone id="grid">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Platform</TableHead>
+              <TableHead>Playtime</TableHead>
+              <TableHead className="w-px text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {games.map((game) => (
+              <GameListRow key={game.id} game={game} onChange={onChange} />
+            ))}
+          </TableBody>
+        </Table>
+      </FocusZone>
     )
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <FocusZone
+      id="grid"
+      className="grid gap-4"
+      style={{ gridTemplateColumns: "repeat(auto-fill, minmax(11rem, 1fr))" }}
+    >
       {games.map((game) => (
         <GameCard key={game.id} game={game} />
       ))}
-    </div>
+    </FocusZone>
   )
 }

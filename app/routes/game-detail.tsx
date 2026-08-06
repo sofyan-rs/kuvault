@@ -1,7 +1,9 @@
+import { useState } from "react"
 import { useNavigate, useParams } from "react-router"
 import { ArrowLeft } from "lucide-react"
 
 import { Button } from "~/components/ui/button"
+import { EditGameDialog } from "~/features/add-game/components/edit-game-dialog"
 import { GameInfoPanel } from "~/features/game-detail/components/game-info-panel"
 import { useGame } from "~/features/game-detail/hooks/use-game"
 
@@ -9,6 +11,7 @@ export default function GameDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { game, loading, refresh } = useGame(Number(id))
+  const [editOpen, setEditOpen] = useState(false)
 
   if (loading) {
     return <p className="p-6 text-sm text-muted-foreground">Loading...</p>
@@ -32,13 +35,30 @@ export default function GameDetail() {
         </div>
       ) : null}
 
-      <div className="mx-auto max-w-2xl p-6">
-        <Button variant="ghost" size="sm" className="mb-4 gap-1.5" onClick={() => navigate("/")}>
-          <ArrowLeft className="size-4" />
+      <div className="mx-auto max-w-5xl p-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 h-auto gap-1.5 px-3 py-2"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="size-5" />
           Back
         </Button>
-        <GameInfoPanel game={game} onChange={refresh} onDeleted={() => navigate("/")} />
+        <GameInfoPanel
+          game={game}
+          onChange={refresh}
+          onDeleted={() => navigate("/")}
+          onEdit={() => setEditOpen(true)}
+        />
       </div>
+
+      <EditGameDialog
+        game={game}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSaved={refresh}
+      />
     </div>
   )
 }

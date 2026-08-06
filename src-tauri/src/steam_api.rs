@@ -23,6 +23,37 @@ struct OwnedGame {
     playtime_forever: u64,
 }
 
+#[derive(Deserialize)]
+struct ResolveVanityResponse {
+    response: ResolveVanityInner,
+}
+
+#[derive(Deserialize)]
+struct ResolveVanityInner {
+    success: u32,
+    #[serde(default)]
+    steamid: Option<String>,
+}
+
+pub async fn resolve_vanity_url(api_key: String, vanity: String) -> Result<Option<String>, String> {
+    let url = format!(
+        "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={}&vanityurl={}",
+        api_key, vanity
+    );
+
+    let client = reqwest::Client::new();
+    let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    let Ok(parsed) = response.json::<ResolveVanityResponse>().await else {
+        return Ok(None);
+    };
+
+    if parsed.response.success != 1 {
+        return Ok(None);
+    }
+    Ok(parsed.response.steamid)
+}
+
 pub async fn get_owned_playtimes(
     api_key: String,
     steam_id: String,
