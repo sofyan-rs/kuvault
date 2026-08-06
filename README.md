@@ -35,8 +35,10 @@ bun run typecheck   # react-router typegen + tsc
 bun run build        # react-router build
 ```
 
+## Building App
+
 ```bash
 bun run tauri build
 ```
 
-Rust backend lives in `src-tauri/src/` (flat feature modules: `db.rs`, `scanners/`, `steam_api.rs`, `steamgriddb.rs`, `launcher.rs`). Frontend is feature-based under `app/features/*` (library, game-detail, add-game, scan, settings), each with `components/` and `hooks/`.
+Created by [Me](https://github.com/sofyan-rs)
