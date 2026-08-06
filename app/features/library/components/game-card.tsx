@@ -1,5 +1,6 @@
 import { Link } from "react-router"
 
+import { PlatformIcon } from "./platform-icon"
 import type { Game } from "../types"
 
 export function GameCard({ game }: { game: Game }) {
@@ -21,10 +22,11 @@ export function GameCard({ game }: { game: Game }) {
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 flex items-end bg-linear-to-t from-black/85 via-black/40 to-transparent p-3 pt-10 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-linear-to-t from-black/85 via-black/40 to-transparent p-3 pt-10 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
         <p className="line-clamp-3 text-sm font-medium text-white">
           {game.name}
         </p>
+        <PlatformIcon platform={game.platform} className="size-5 shrink-0 text-white" />
       </div>
     </Link>
   )
