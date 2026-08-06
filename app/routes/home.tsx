@@ -14,7 +14,14 @@ export default function Home() {
   const [genre, setGenre] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<SortKey>("name")
-  const [view, setView] = useState<ViewMode>("grid")
+  const [view, setView] = useState<ViewMode>(
+    () => (localStorage.getItem("library-view") as ViewMode | null) ?? "grid",
+  )
+
+  function handleViewChange(next: ViewMode) {
+    setView(next)
+    localStorage.setItem("library-view", next)
+  }
 
   const genres = useMemo(() => {
     const set = new Set<string>()
@@ -42,7 +49,7 @@ export default function Home() {
           sort={sort}
           onSortChange={setSort}
           view={view}
-          onViewChange={setView}
+          onViewChange={handleViewChange}
           games={games}
           onImported={refresh}
           genres={genres}

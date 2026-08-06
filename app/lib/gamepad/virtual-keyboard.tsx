@@ -1,5 +1,5 @@
 import { useGamepadKeyboardState } from "./gamepad-navigation-provider"
-import { KEYBOARD_ROWS } from "./keyboard-layout"
+import { LETTERS_KEY, rowsForMode, SYMBOLS_KEY } from "./keyboard-layout"
 import { cn } from "~/lib/utils"
 
 // Xbox controller face-button colors: A green, B red, X blue, Y yellow.
@@ -21,7 +21,7 @@ function ButtonGlyph({ children }: { children: string }) {
 }
 
 export function VirtualKeyboard() {
-  const { visible, minimized, row, col, shift } = useGamepadKeyboardState()
+  const { visible, minimized, row, col, shift, mode } = useGamepadKeyboardState()
 
   if (!visible) return null
 
@@ -38,18 +38,20 @@ export function VirtualKeyboard() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-60 flex justify-center pb-4">
       <div className="flex flex-col gap-2.5 rounded-2xl border border-border bg-background/95 p-5 shadow-lg backdrop-blur-xs">
-        {KEYBOARD_ROWS.map((keys, r) => (
+        {rowsForMode(mode).map((keys, r) => (
           <div key={r} className="flex justify-center gap-2.5">
             {keys.map((key, c) => {
               const isActive = r === row && c === col
               const isSpace = key === " "
-              const label = isSpace ? "Space" : shift ? key.toUpperCase() : key
+              const isToggle = key === SYMBOLS_KEY || key === LETTERS_KEY
+              const label = isSpace ? "Space" : isToggle ? key : shift ? key.toUpperCase() : key
               return (
                 <span
                   key={c}
                   className={cn(
-                    "flex h-12 items-center justify-center rounded-lg border text-lg font-medium transition-colors",
-                    isSpace ? "w-72" : "w-12",
+                    "flex h-12 items-center justify-center rounded-lg border font-medium transition-colors",
+                    isSpace ? "w-72 text-lg" : "w-12",
+                    isToggle ? "text-sm" : "text-lg",
                     isActive
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border bg-muted text-foreground"

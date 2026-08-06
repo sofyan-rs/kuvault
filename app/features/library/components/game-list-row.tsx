@@ -66,6 +66,16 @@ export function GameListRow({ game, onChange }: { game: Game; onChange: () => vo
       <TableCell className="text-muted-foreground">
         {formatPlaytime(game.playtime_seconds)}
       </TableCell>
+      <TableCell>
+        {isRunning ? (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-500">
+            <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-emerald-400" />
+            Running
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">Idle</span>
+        )}
+      </TableCell>
       <TableCell className="w-px">
         <div className="flex items-center justify-end gap-1.5">
           {isRunning ? (
@@ -91,12 +101,6 @@ export function GameListRow({ game, onChange }: { game: Game; onChange: () => vo
               )}
             </Button>
           )}
-          {isRunning ? (
-            <span className="ml-0.5 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-500">
-              <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-emerald-400" />
-              Running
-            </span>
-          ) : null}
           <Button
             variant="outline"
             size="icon-sm"

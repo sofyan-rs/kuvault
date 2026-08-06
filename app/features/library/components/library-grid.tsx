@@ -34,6 +34,7 @@ export function LibraryGrid({
               <TableHead>Name</TableHead>
               <TableHead>Platform</TableHead>
               <TableHead>Playtime</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="w-px text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>

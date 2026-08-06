@@ -14,7 +14,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "KuVault-Tauri",
+        "title": "KuVault",
         "width": 1400,
         "height": 918,
         "minWidth": 1024,

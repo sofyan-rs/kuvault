@@ -1,7 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 
-import { clampCol, KEYBOARD_ROWS, nearestCol } from "./keyboard-layout"
+import {
+  clampCol,
+  LETTERS_KEY,
+  nearestCol,
+  rowsForMode,
+  SYMBOLS_KEY,
+  type KeyboardMode,
+} from "./keyboard-layout"
 import { deleteBeforeCursor, insertAtCursor, isTextField } from "./text-input"
 import { useGamepadPoll } from "./use-gamepad-poll"
 import { findNearestInDirection, findNextFocusable, getFocusableIn } from "./spatial-nav"
@@ -84,6 +91,7 @@ interface KeyboardRenderState {
   row: number
   col: number
   shift: boolean
+  mode: KeyboardMode
 }
 
 const KEYBOARD_STATE_DEFAULT: KeyboardRenderState = {
@@ -92,6 +100,7 @@ const KEYBOARD_STATE_DEFAULT: KeyboardRenderState = {
   row: 0,
   col: 0,
   shift: false,
+  mode: "letters",
 }
 
 const KeyboardStateContext = createContext<KeyboardRenderState>(KEYBOARD_STATE_DEFAULT)
@@ -100,6 +109,7 @@ const KeyboardStateContext = createContext<KeyboardRenderState>(KEYBOARD_STATE_D
 export function useGamepadKeyboardState(): KeyboardRenderState {
   return useContext(KeyboardStateContext)
 }
+
 
 const SliderAdjustContext = createContext(false)
 
@@ -148,6 +158,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
   const [keyboardRow, setKeyboardRow] = useState(1)
   const [keyboardCol, setKeyboardCol] = useState(0)
   const [keyboardShift, setKeyboardShift] = useState(false)
+  const [keyboardMode, setKeyboardMode] = useState<KeyboardMode>("letters")
   const sliderTargetRef = useRef<HTMLInputElement | null>(null)
   const [sliderAdjustActive, setSliderAdjustActive] = useState(false)
   const navigate = useNavigate()
@@ -162,6 +173,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     keyboardTargetRef.current = null
     setKeyboardVisible(false)
     setKeyboardMinimized(false)
+    setKeyboardMode("letters")
   }, [])
 
   const exitSliderAdjust = useCallback(() => {
@@ -188,6 +200,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     setKeyboardRow(1)
     setKeyboardCol(0)
     setKeyboardShift(false)
+    setKeyboardMode("letters")
   }, [])
 
   const register = useCallback((id: ZoneId, element: HTMLElement) => {
@@ -208,18 +221,17 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
   const handleDirection = useCallback(
     (direction: Direction) => {
       if (keyboardVisible && !keyboardMinimized) {
+        const rows = rowsForMode(keyboardMode)
         if (direction === "up" || direction === "down") {
           setKeyboardRow((row) => {
             const nextRow =
-              direction === "up"
-                ? Math.max(row - 1, 0)
-                : Math.min(row + 1, KEYBOARD_ROWS.length - 1)
-            setKeyboardCol((col) => nearestCol(row, col, nextRow))
+              direction === "up" ? Math.max(row - 1, 0) : Math.min(row + 1, rows.length - 1)
+            setKeyboardCol((col) => nearestCol(rows, row, col, nextRow))
             return nextRow
           })
         } else {
           const delta = direction === "left" ? -1 : 1
-          setKeyboardCol((col) => clampCol(keyboardRow, col + delta))
+          setKeyboardCol((col) => clampCol(rows, keyboardRow, col + delta))
         }
         playMoveSfx()
         return
@@ -300,14 +312,29 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
       const candidates = getFocusableIn(fallbackContainer)
       if (candidates[0]) focusElement(candidates[0])
     },
-    [keyboardVisible, keyboardMinimized, keyboardRow, sliderAdjustActive, findCurrentZone, focusElement],
+    [
+      keyboardVisible,
+      keyboardMinimized,
+      keyboardRow,
+      keyboardMode,
+      sliderAdjustActive,
+      findCurrentZone,
+      focusElement,
+    ],
   )
 
   const handleButtonA = useCallback(() => {
     if (keyboardVisible && !keyboardMinimized) {
       const target = keyboardTargetRef.current
       if (!target) return
-      const key = KEYBOARD_ROWS[keyboardRow][keyboardCol]
+      const key = rowsForMode(keyboardMode)[keyboardRow][keyboardCol]
+      if (key === SYMBOLS_KEY || key === LETTERS_KEY) {
+        setKeyboardMode(key === SYMBOLS_KEY ? "symbols" : "letters")
+        setKeyboardRow(1)
+        setKeyboardCol(0)
+        playConfirmSfx()
+        return
+      }
       insertAtCursor(target, key === " " ? " " : keyboardShift ? key.toUpperCase() : key)
       playConfirmSfx()
       return
@@ -337,7 +364,15 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     }
     active.click()
     playConfirmSfx()
-  }, [keyboardVisible, keyboardMinimized, keyboardRow, keyboardCol, keyboardShift, openKeyboardFor])
+  }, [
+    keyboardVisible,
+    keyboardMinimized,
+    keyboardRow,
+    keyboardCol,
+    keyboardShift,
+    keyboardMode,
+    openKeyboardFor,
+  ])
 
   const handleButtonX = useCallback(() => {
     if (!keyboardVisible || keyboardMinimized) return
@@ -455,8 +490,9 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
       row: keyboardRow,
       col: keyboardCol,
       shift: keyboardShift,
+      mode: keyboardMode,
     }),
-    [keyboardVisible, keyboardMinimized, keyboardRow, keyboardCol, keyboardShift],
+    [keyboardVisible, keyboardMinimized, keyboardRow, keyboardCol, keyboardShift, keyboardMode],
   )
 
   return (
