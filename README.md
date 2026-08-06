@@ -4,8 +4,12 @@ Desktop game library manager for Windows. Unifies Steam, Epic, and manually-adde
 
 ## Screenshots
 
-![KuVault screenshot 1](ss/ss-1.png)
-![KuVault screenshot 2](ss/ss-2.png)
+![SS1](ss/ss-1.png)
+![SS2](ss/ss-2.png)
+![SS3](ss/ss-3.png)
+![SS4](ss/ss-4.png)
+![SS5](ss/ss-5.png)
+![SS6](ss/ss-6.png)
 
 ## Features
 
