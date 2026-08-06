@@ -2,6 +2,11 @@
 
 Desktop game library manager for Windows. Unifies Steam, Epic, and manually-added games (emulators, standalone installers) into one local library — browse, launch, and track playtime, with full gamepad navigation support.
 
+## Screenshots
+
+![KuVault screenshot 1](ss/ss-1.png)
+![KuVault screenshot 2](ss/ss-2.png)
+
 ## Features
 
 - Library grid/list view — search, sort, filter by platform/tag/favorite.
