@@ -2,8 +2,9 @@ import { useEffect, useState } from "react"
 import { listen } from "@tauri-apps/api/event"
 import { toast } from "sonner"
 
-import { addPlaytime } from "~/lib/db/db"
+import { addPlaytime, getSetting, setPlaytime } from "~/lib/db/db"
 import type { Game } from "~/lib/db/db-types"
+import { STEAM_API_KEY_SETTING, STEAM_ID_SETTING } from "~/features/settings/components/steam-api-form"
 import { trackedInvoke } from "~/lib/tauri/tauri"
 
 interface LaunchStarted {
@@ -47,9 +48,35 @@ export function useLaunchGame(game: Game, onFinished: () => void) {
     }
   }, [game.id, onFinished])
 
+  async function syncSteamPlaytime() {
+    if (game.platform !== "steam" || !game.source_id) return
+    try {
+      const [apiKey, steamId] = await Promise.all([
+        getSetting(STEAM_API_KEY_SETTING),
+        getSetting(STEAM_ID_SETTING),
+      ])
+      if (!apiKey || !steamId) return
+
+      const owned = await trackedInvoke<{ appid: string; playtime_minutes: number }[]>(
+        "get_steam_owned_playtimes",
+        { apiKey, steamId },
+      )
+      const remoteSeconds = owned.find((g) => g.appid === game.source_id)?.playtime_minutes
+      if (remoteSeconds === undefined) return
+
+      const remoteTotal = remoteSeconds * 60
+      if (remoteTotal > game.playtime_seconds) {
+        await setPlaytime(game.id, remoteTotal)
+      }
+    } catch {
+      // Steam sync is best-effort — never block a launch on it.
+    }
+  }
+
   async function launch() {
     setLaunching(true)
     try {
+      await syncSteamPlaytime()
       await trackedInvoke("launch_game", {
         id: game.id,
         platform: game.platform,
