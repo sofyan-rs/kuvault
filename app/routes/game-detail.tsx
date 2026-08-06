@@ -1,0 +1,44 @@
+import { useNavigate, useParams } from "react-router"
+import { ArrowLeft } from "lucide-react"
+
+import { Button } from "~/components/ui/button"
+import { GameInfoPanel } from "~/features/game-detail/components/game-info-panel"
+import { useGame } from "~/features/game-detail/hooks/use-game"
+
+export default function GameDetail() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { game, loading, refresh } = useGame(Number(id))
+
+  if (loading) {
+    return <p className="p-6 text-sm text-muted-foreground">Loading...</p>
+  }
+
+  if (!game) {
+    return <p className="p-6 text-sm text-muted-foreground">Game not found.</p>
+  }
+
+  return (
+    <div className="relative min-h-svh">
+      {game.cover_url ? (
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <img
+            src={game.cover_url}
+            alt=""
+            className="size-full scale-110 object-cover blur-2xl"
+          />
+          <div className="absolute inset-0 bg-background/80" />
+          <div className="absolute inset-0 bg-linear-to-b from-background/40 via-background/70 to-background" />
+        </div>
+      ) : null}
+
+      <div className="mx-auto max-w-2xl p-6">
+        <Button variant="ghost" size="sm" className="mb-4 gap-1.5" onClick={() => navigate("/")}>
+          <ArrowLeft className="size-4" />
+          Back
+        </Button>
+        <GameInfoPanel game={game} onChange={refresh} onDeleted={() => navigate("/")} />
+      </div>
+    </div>
+  )
+}

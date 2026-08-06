@@ -9,6 +9,10 @@ import {
 
 import type { Route } from "./+types/root"
 import "./app.css"
+import { ExternalLinkGuard } from "./components/external-link-guard"
+import { DebugPanel } from "./components/debug-panel"
+import { Toaster } from "./components/ui/sonner"
+import { themeInitScript } from "./lib/theme"
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,9 +22,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
+        <ExternalLinkGuard />
+        {import.meta.env.DEV ? <DebugPanel /> : null}
         {children}
+        <Toaster position="bottom-right" />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -29,7 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />
+  return <main data-ui-scroll-container><Outlet /></main>
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
