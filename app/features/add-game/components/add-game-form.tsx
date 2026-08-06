@@ -16,8 +16,8 @@ import {
   SelectValue,
 } from "~/components/ui/select"
 import { Textarea } from "~/components/ui/textarea"
-import { addGame, updateGame } from "~/lib/db"
-import type { Game, Platform } from "~/lib/db-types"
+import { addGame, updateGame } from "~/lib/db/db"
+import type { Game, Platform } from "~/lib/db/db-types"
 
 import { CoverPicker } from "./cover-picker"
 

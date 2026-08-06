@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog"
-import type { Game } from "~/lib/db-types"
+import type { Game } from "~/lib/db/db-types"
 
 import { AddGameForm } from "./add-game-form"
 

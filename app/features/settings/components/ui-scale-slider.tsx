@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Label } from "~/components/ui/label"
 import { Slider } from "~/components/ui/slider"
 import { useIsGamepadSliderAdjusting } from "~/lib/gamepad/gamepad-navigation-provider"
-import { getStoredUiScale, MAX_SCALE, MIN_SCALE, setUiScale } from "~/lib/ui-scale"
+import { getStoredUiScale, MAX_SCALE, MIN_SCALE, setUiScale } from "~/lib/settings/ui-scale"
 
 export function UiScaleSlider() {
   const [scale, setScale] = useState<number>(() => getStoredUiScale())

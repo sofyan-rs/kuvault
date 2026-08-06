@@ -14,9 +14,9 @@ import {
 } from "~/components/ui/alert-dialog"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
-import { deleteGame, toggleFavorite } from "~/lib/db"
-import type { Game } from "~/lib/db-types"
-import { useIsGameRunning } from "~/lib/running-games"
+import { deleteGame, toggleFavorite } from "~/lib/db/db"
+import type { Game } from "~/lib/db/db-types"
+import { useIsGameRunning } from "~/lib/tauri/running-games"
 
 import { useLaunchGame } from "../hooks/use-launch-game"
 

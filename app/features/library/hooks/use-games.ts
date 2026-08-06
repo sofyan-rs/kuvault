@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 
-import { listGames } from "~/lib/db"
+import { listGames } from "~/lib/db/db"
 
 import type { Game } from "../types"
 

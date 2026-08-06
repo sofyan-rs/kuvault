@@ -2,10 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useLocation, useNavigate } from "react-router"
 
 import {
+  BACKSPACE_KEY,
   clampCol,
+  DONE_KEY,
   LETTERS_KEY,
   nearestCol,
   rowsForMode,
+  SHIFT_KEY,
   SYMBOLS_KEY,
   type KeyboardMode,
 } from "./keyboard-layout"
@@ -85,6 +88,10 @@ export function useRegisterGamepadSearch() {
   }, [setAvailable])
 }
 
+interface KeyboardActions {
+  pressKey: (key: string, row: number, col: number) => void
+}
+
 interface KeyboardRenderState {
   visible: boolean
   minimized: boolean
@@ -92,6 +99,12 @@ interface KeyboardRenderState {
   col: number
   shift: boolean
   mode: KeyboardMode
+  previewValue: string
+  actions: KeyboardActions
+}
+
+const KEYBOARD_ACTIONS_NOOP: KeyboardActions = {
+  pressKey: () => {},
 }
 
 const KEYBOARD_STATE_DEFAULT: KeyboardRenderState = {
@@ -101,6 +114,8 @@ const KEYBOARD_STATE_DEFAULT: KeyboardRenderState = {
   col: 0,
   shift: false,
   mode: "letters",
+  previewValue: "",
+  actions: KEYBOARD_ACTIONS_NOOP,
 }
 
 const KeyboardStateContext = createContext<KeyboardRenderState>(KEYBOARD_STATE_DEFAULT)
@@ -152,6 +167,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
   const [bumpersActive, setBumpersActive] = useState(false)
   const [searchAvailable, setSearchAvailable] = useState(false)
   const isConnectedRef = useRef(false)
+  const lastPointerTypeRef = useRef<string>("mouse")
   const keyboardTargetRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
   const [keyboardVisible, setKeyboardVisible] = useState(false)
   const [keyboardMinimized, setKeyboardMinimized] = useState(false)
@@ -159,6 +175,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
   const [keyboardCol, setKeyboardCol] = useState(0)
   const [keyboardShift, setKeyboardShift] = useState(false)
   const [keyboardMode, setKeyboardMode] = useState<KeyboardMode>("letters")
+  const [keyboardPreview, setKeyboardPreview] = useState("")
   const sliderTargetRef = useRef<HTMLInputElement | null>(null)
   const [sliderAdjustActive, setSliderAdjustActive] = useState(false)
   const navigate = useNavigate()
@@ -174,6 +191,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     setKeyboardVisible(false)
     setKeyboardMinimized(false)
     setKeyboardMode("letters")
+    setKeyboardPreview("")
   }, [])
 
   const exitSliderAdjust = useCallback(() => {
@@ -201,6 +219,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     setKeyboardCol(0)
     setKeyboardShift(false)
     setKeyboardMode("letters")
+    setKeyboardPreview(element.value)
   }, [])
 
   const register = useCallback((id: ZoneId, element: HTMLElement) => {
@@ -323,20 +342,42 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     ],
   )
 
-  const handleButtonA = useCallback(() => {
-    if (keyboardVisible && !keyboardMinimized) {
+  // What pressing a given on-screen key does — shared by the gamepad A button (using the
+  // D-pad cursor position) and touch taps (which pass the tapped key directly).
+  const activateKey = useCallback(
+    (key: string) => {
       const target = keyboardTargetRef.current
       if (!target) return
-      const key = rowsForMode(keyboardMode)[keyboardRow][keyboardCol]
       if (key === SYMBOLS_KEY || key === LETTERS_KEY) {
         setKeyboardMode(key === SYMBOLS_KEY ? "symbols" : "letters")
-        setKeyboardRow(1)
         setKeyboardCol(0)
+        playConfirmSfx()
+        return
+      }
+      if (key === BACKSPACE_KEY) {
+        deleteBeforeCursor(target)
+        playBackSfx()
+        return
+      }
+      if (key === DONE_KEY) {
+        closeKeyboard()
+        return
+      }
+      if (key === SHIFT_KEY) {
+        setKeyboardShift((s) => !s)
         playConfirmSfx()
         return
       }
       insertAtCursor(target, key === " " ? " " : keyboardShift ? key.toUpperCase() : key)
       playConfirmSfx()
+    },
+    [keyboardShift, closeKeyboard],
+  )
+
+  const handleButtonA = useCallback(() => {
+    if (keyboardVisible && !keyboardMinimized) {
+      const key = rowsForMode(keyboardMode)[keyboardRow][keyboardCol]
+      activateKey(key)
       return
     }
 
@@ -369,8 +410,8 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     keyboardMinimized,
     keyboardRow,
     keyboardCol,
-    keyboardShift,
     keyboardMode,
+    activateKey,
     openKeyboardFor,
   ])
 
@@ -382,6 +423,18 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
       playBackSfx()
     }
   }, [keyboardVisible, keyboardMinimized])
+
+  // Touch/mouse tap on an on-screen keyboard key — moves the gamepad row/col cursor to the
+  // tapped key so the highlight follows the finger instead of staying wherever the D-pad last
+  // left it, then runs the same activation logic as the A button.
+  const pressKey = useCallback(
+    (key: string, row: number, col: number) => {
+      setKeyboardRow(row)
+      setKeyboardCol(col)
+      activateKey(key)
+    },
+    [activateKey],
+  )
 
   const handleButtonB = useCallback(() => {
     playBackSfx()
@@ -463,10 +516,40 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     function handleFocusIn(event: FocusEvent) {
       if (keyboardTargetRef.current && event.target !== keyboardTargetRef.current) closeKeyboard()
       if (sliderTargetRef.current && event.target !== sliderTargetRef.current) exitSliderAdjust()
+
+      // Touch tap into a text field with no gamepad involved — open the on-screen keyboard,
+      // independent of gamepad connection state.
+      const target = event.target as HTMLElement | null
+      if (
+        lastPointerTypeRef.current === "touch" &&
+        isTextField(target) &&
+        keyboardTargetRef.current !== target
+      ) {
+        openKeyboardFor(target)
+      }
     }
     document.addEventListener("focusin", handleFocusIn)
     return () => document.removeEventListener("focusin", handleFocusIn)
-  }, [closeKeyboard, exitSliderAdjust])
+  }, [closeKeyboard, exitSliderAdjust, openKeyboardFor])
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      lastPointerTypeRef.current = event.pointerType
+    }
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [])
+
+  // Mirrors the keyboard target's live value into keyboardPreview, so the overlay can show a
+  // copy of the field even when it's covered by the keyboard panel itself.
+  useEffect(() => {
+    function handleInput(event: Event) {
+      if (event.target !== keyboardTargetRef.current) return
+      setKeyboardPreview((event.target as HTMLInputElement | HTMLTextAreaElement).value)
+    }
+    document.addEventListener("input", handleInput)
+    return () => document.removeEventListener("input", handleInput)
+  }, [])
 
   useEffect(() => {
     closeKeyboard()
@@ -483,6 +566,8 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     return () => window.removeEventListener("mousemove", clearGamepadFocus)
   }, [])
 
+  const keyboardActions = useMemo<KeyboardActions>(() => ({ pressKey }), [pressKey])
+
   const keyboardState = useMemo<KeyboardRenderState>(
     () => ({
       visible: keyboardVisible,
@@ -491,8 +576,19 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
       col: keyboardCol,
       shift: keyboardShift,
       mode: keyboardMode,
+      previewValue: keyboardPreview,
+      actions: keyboardActions,
     }),
-    [keyboardVisible, keyboardMinimized, keyboardRow, keyboardCol, keyboardShift, keyboardMode],
+    [
+      keyboardVisible,
+      keyboardMinimized,
+      keyboardRow,
+      keyboardCol,
+      keyboardShift,
+      keyboardMode,
+      keyboardPreview,
+      keyboardActions,
+    ],
   )
 
   return (

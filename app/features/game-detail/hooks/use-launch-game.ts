@@ -2,9 +2,9 @@ import { useEffect, useState } from "react"
 import { listen } from "@tauri-apps/api/event"
 import { toast } from "sonner"
 
-import { addPlaytime } from "~/lib/db"
-import type { Game } from "~/lib/db-types"
-import { trackedInvoke } from "~/lib/tauri"
+import { addPlaytime } from "~/lib/db/db"
+import type { Game } from "~/lib/db/db-types"
+import { trackedInvoke } from "~/lib/tauri/tauri"
 
 interface LaunchStarted {
   id: number

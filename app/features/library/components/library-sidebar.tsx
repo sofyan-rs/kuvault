@@ -13,7 +13,7 @@ import {
 import { SettingsDialog } from "~/features/settings/components/settings-dialog"
 import { FocusZone } from "~/lib/gamepad/focus-zone"
 import { useGamepadBumpers } from "~/lib/gamepad/gamepad-navigation-provider"
-import { useFullscreen } from "~/lib/use-fullscreen"
+import { useFullscreen } from "~/lib/hooks/use-fullscreen"
 import { cn } from "~/lib/utils"
 
 import { PlatformIcon } from "./platform-icon"

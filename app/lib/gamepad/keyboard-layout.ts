@@ -5,20 +5,26 @@ export type KeyboardMode = "letters" | "symbols"
 export const SYMBOLS_KEY = "#+="
 export const LETTERS_KEY = "ABC"
 
+// Control-key tokens folded into the grid so they're D-pad navigable (Switch-style), while
+// Y/X/B still trigger them instantly as shortcuts from anywhere.
+export const BACKSPACE_KEY = "⌫"
+export const DONE_KEY = "OK"
+export const SHIFT_KEY = "⇧"
+
 export const LETTER_ROWS: string[][] = [
-  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", BACKSPACE_KEY],
   ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
   ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-  [SYMBOLS_KEY, "z", "x", "c", "v", "b", "n", "m"],
-  [" "],
+  [SHIFT_KEY, SYMBOLS_KEY, "z", "x", "c", "v", "b", "n", "m"],
+  [" ", DONE_KEY],
 ]
 
 export const SYMBOL_ROWS: string[][] = [
-  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", BACKSPACE_KEY],
   ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")"],
   ["-", "_", "=", "+", "[", "]", "{", "}", "\\"],
   [LETTERS_KEY, ";", ":", "'", "\"", ",", ".", "/", "?"],
-  [" "],
+  [" ", DONE_KEY],
 ]
 
 export function rowsForMode(mode: KeyboardMode): string[][] {
@@ -30,22 +36,26 @@ export function clampCol(rows: string[][], row: number, col: number): number {
   return Math.min(Math.max(col, 0), len - 1)
 }
 
-// Matches the rendered layout in virtual-keyboard.tsx: each row is centered independently,
-// keys are 48px wide (space bar 288px) with a 10px gap. Moving up/down should land on whichever
-// key is horizontally nearest on screen, not the proportionally-scaled index.
+// Matches the rendered layout in virtual-keyboard.tsx: keys are 48px wide (space bar 288px)
+// with a 10px gap, each row centered independently. Moving up/down should land on whichever
+// key is horizontally nearest on screen, not the proportionally-scaled index. Rows can now mix
+// a wide space key with standard-width neighbors (e.g. `[" ", DONE_KEY]`), so widths are
+// computed per key rather than assumed uniform per row.
 const KEY_WIDTH_PX = 48
 const SPACE_WIDTH_PX = 288
 const GAP_PX = 10
 
-function keyWidth(rows: string[][], row: number): number {
-  return rows[row].length === 1 ? SPACE_WIDTH_PX : KEY_WIDTH_PX
+function keyWidth(key: string): number {
+  return key === " " ? SPACE_WIDTH_PX : KEY_WIDTH_PX
 }
 
 function keyCenterX(rows: string[][], row: number, col: number): number {
-  const width = keyWidth(rows, row)
-  const len = rows[row].length
-  const rowWidth = len * width + (len - 1) * GAP_PX
-  return -rowWidth / 2 + col * (width + GAP_PX) + width / 2
+  const keys = rows[row]
+  const widths = keys.map(keyWidth)
+  const rowWidth = widths.reduce((sum, w) => sum + w, 0) + (keys.length - 1) * GAP_PX
+  let x = -rowWidth / 2
+  for (let j = 0; j < col; j++) x += widths[j] + GAP_PX
+  return x + widths[col] / 2
 }
 
 export function nearestCol(rows: string[][], fromRow: number, fromCol: number, toRow: number): number {

@@ -1,4 +1,4 @@
-export type { Game, Platform } from "~/lib/db-types"
+export type { Game, Platform } from "~/lib/db/db-types"
 
 export type LibraryFilter = "all" | "favorites" | "steam" | "epic"
 

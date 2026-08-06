@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select"
-import { getStoredTheme, setTheme, type Theme } from "~/lib/theme"
+import { getStoredTheme, setTheme, type Theme } from "~/lib/settings/theme"
 
 const THEME_LABELS: Record<Theme, string> = {
   dark: "Dark",

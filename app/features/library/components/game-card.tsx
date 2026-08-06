@@ -1,6 +1,6 @@
 import { Link } from "react-router"
 
-import { useIsGameRunning } from "~/lib/running-games"
+import { useIsGameRunning } from "~/lib/tauri/running-games"
 
 import { PlatformIcon } from "./platform-icon"
 import type { Game } from "../types"

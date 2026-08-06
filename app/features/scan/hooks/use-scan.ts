@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { trackedInvoke } from "~/lib/tauri"
+import { trackedInvoke } from "~/lib/tauri/tauri"
 
 import type { ScannedGame } from "../types"
 

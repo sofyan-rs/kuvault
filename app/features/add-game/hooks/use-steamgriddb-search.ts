@@ -1,7 +1,7 @@
 import { useState } from "react"
 
-import { getSetting } from "~/lib/db"
-import { trackedInvoke } from "~/lib/tauri"
+import { getSetting } from "~/lib/db/db"
+import { trackedInvoke } from "~/lib/tauri/tauri"
 
 import { STEAMGRIDDB_KEY_SETTING } from "~/features/settings/components/steamgriddb-key-form"
 

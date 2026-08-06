@@ -49,8 +49,8 @@ import {
   type RuntimeEventDebugEvent,
   emitDebugEvent,
   serializeError,
-} from "~/lib/debug-events"
-import { trackedEmit, isTauri } from "~/lib/tauri"
+} from "~/lib/tauri/debug-events"
+import { trackedEmit, isTauri } from "~/lib/tauri/tauri"
 import { cn } from "~/lib/utils"
 
 type AppDiagnostics = {

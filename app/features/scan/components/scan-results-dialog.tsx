@@ -11,9 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog"
-import { addGame, getSetting, setPlaytime } from "~/lib/db"
-import type { Game } from "~/lib/db-types"
-import { trackedInvoke } from "~/lib/tauri"
+import { addGame, getSetting, setPlaytime } from "~/lib/db/db"
+import type { Game } from "~/lib/db/db-types"
+import { trackedInvoke } from "~/lib/tauri/tauri"
 
 import { STEAM_API_KEY_SETTING, STEAM_ID_SETTING } from "~/features/settings/components/steam-api-form"
 import { STEAMGRIDDB_KEY_SETTING } from "~/features/settings/components/steamgriddb-key-form"

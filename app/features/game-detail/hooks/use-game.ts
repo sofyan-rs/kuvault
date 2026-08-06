@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 
-import { getGame } from "~/lib/db"
-import type { Game } from "~/lib/db-types"
+import { getGame } from "~/lib/db/db"
+import type { Game } from "~/lib/db/db-types"
 
 export function useGame(id: number) {
   const [game, setGame] = useState<Game | null>(null)

@@ -19,8 +19,8 @@ import { Button } from "~/components/ui/button"
 import { TableCell, TableRow } from "~/components/ui/table"
 import { EditGameDialog } from "~/features/add-game/components/edit-game-dialog"
 import { useLaunchGame } from "~/features/game-detail/hooks/use-launch-game"
-import { deleteGame, toggleFavorite } from "~/lib/db"
-import { useIsGameRunning } from "~/lib/running-games"
+import { deleteGame, toggleFavorite } from "~/lib/db/db"
+import { useIsGameRunning } from "~/lib/tauri/running-games"
 
 import type { Game } from "../types"
 

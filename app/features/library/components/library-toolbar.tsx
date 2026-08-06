@@ -20,7 +20,7 @@ import { AddGameDialog } from "~/features/add-game/components/add-game-dialog"
 import { ScanResultsDialog } from "~/features/scan/components/scan-results-dialog"
 import { FocusZone } from "~/lib/gamepad/focus-zone"
 import { useRegisterGamepadSearch } from "~/lib/gamepad/gamepad-navigation-provider"
-import type { Game } from "~/lib/db-types"
+import type { Game } from "~/lib/db/db-types"
 import { cn } from "~/lib/utils"
 
 import type { SortKey, ViewMode } from "../types"

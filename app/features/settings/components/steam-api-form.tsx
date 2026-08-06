@@ -2,7 +2,7 @@ import { useState } from "react"
 
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
-import { trackedInvoke } from "~/lib/tauri"
+import { trackedInvoke } from "~/lib/tauri/tauri"
 
 export const STEAM_API_KEY_SETTING = "steam_web_api_key"
 export const STEAM_ID_SETTING = "steam_id64"
