@@ -6,6 +6,7 @@ Desktop game library manager for Windows. Unifies Steam, Epic, and manually-adde
 
 - Library grid/list view — search, sort, filter by platform/tag/favorite.
 - Auto-scan installed Steam and Epic games; manual add for anything else.
+- Emulator support — add a ROM/ISO as the launch argument alongside the emulator executable.
 - Cover art lookup via [SteamGridDB](https://www.steamgriddb.com/).
 - Launch games and track playtime locally.
 - Optional Steam Web API + SteamID64 sync for real playtime import (paste a profile URL — it resolves automatically).
