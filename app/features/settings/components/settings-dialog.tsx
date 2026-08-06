@@ -11,6 +11,7 @@ import {
 } from "~/components/ui/dialog"
 import { getSetting, setSetting } from "~/lib/db/db"
 
+import { GamepadHomeToggle } from "./gamepad-home-toggle"
 import { STEAM_API_KEY_SETTING, STEAM_ID_SETTING, SteamApiForm } from "./steam-api-form"
 import { STEAMGRIDDB_KEY_SETTING, SteamGridDbKeyForm } from "./steamgriddb-key-form"
 import { ThemeSelect } from "./theme-select"
@@ -67,6 +68,7 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
         <div className="flex flex-col gap-6">
           <ThemeSelect />
           <UiScaleSlider />
+          <GamepadHomeToggle />
           <SteamGridDbKeyForm value={gridDbKey} onChange={setGridDbKey} disabled={loading} />
           <SteamApiForm
             apiKey={steamApiKey}

@@ -1,6 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 
+import { getHomeButtonReturnsFocus } from "~/lib/settings/gamepad-home"
+import { trackedInvoke } from "~/lib/tauri/tauri"
+import { useRunningGameIds } from "~/lib/tauri/running-games"
+
 import {
   BACKSPACE_KEY,
   clampCol,
@@ -492,6 +496,18 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     playMoveSfx()
   }, [keyboardVisible])
 
+  const runningGameIds = useRunningGameIds()
+  const runningGameIdsRef = useRef(runningGameIds)
+  runningGameIdsRef.current = runningGameIds
+
+  const handleButtonHome = useCallback(() => {
+    if (!getHomeButtonReturnsFocus()) return
+    if (runningGameIdsRef.current.size === 0) return
+
+    trackedInvoke("focus_main_window")
+    playConfirmSfx()
+  }, [])
+
   const { isConnected } = useGamepadPoll({
     onDirection: handleDirection,
     onButtonA: handleButtonA,
@@ -500,6 +516,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     onButtonY: handleButtonY,
     onBumperLeft: handleBumperLeft,
     onBumperRight: handleBumperRight,
+    onButtonHome: handleButtonHome,
   })
 
   useEffect(() => {

@@ -16,5 +16,11 @@ pub fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0002_drop_installed.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "add run_as_admin column",
+            sql: include_str!("../migrations/0003_add_run_as_admin.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }

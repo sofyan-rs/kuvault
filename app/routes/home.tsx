@@ -6,9 +6,11 @@ import { LibraryToolbar } from "~/features/library/components/library-toolbar"
 import { useFilteredGames } from "~/features/library/hooks/use-filtered-games"
 import { useGames } from "~/features/library/hooks/use-games"
 import type { LibraryFilter, SortKey, ViewMode } from "~/features/library/types"
+import { useIsGamepadConnected } from "~/lib/gamepad/gamepad-navigation-provider"
 
 export default function Home() {
-  const { games, loading, refresh } = useGames()
+  const { games, loading, refresh, updateGame } = useGames()
+  const gamepadConnected = useIsGamepadConnected()
 
   const [filter, setFilter] = useState<LibraryFilter>("all")
   const [genre, setGenre] = useState<string | null>(null)
@@ -41,7 +43,9 @@ export default function Home() {
     <div className="flex h-svh">
       <LibrarySidebar filter={filter} onFilterChange={setFilter} games={games} />
 
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div
+        className={`flex flex-1 flex-col gap-4 overflow-y-auto p-4 ${gamepadConnected ? "pb-14 scroll-pb-14" : ""}`}
+      >
         <LibraryToolbar
           count={filteredGames.length}
           search={search}
@@ -60,7 +64,12 @@ export default function Home() {
         {loading ? (
           <p className="py-24 text-center text-sm text-muted-foreground">Loading library...</p>
         ) : (
-          <LibraryGrid games={filteredGames} view={view} onChange={refresh} />
+          <LibraryGrid
+            games={filteredGames}
+            view={view}
+            onChange={refresh}
+            onUpdateGame={updateGame}
+          />
         )}
       </div>
     </div>

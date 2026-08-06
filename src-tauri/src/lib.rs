@@ -59,13 +59,42 @@ fn launch_game(
     executable_path: String,
     launch_args: Option<String>,
     install_dir: Option<String>,
+    run_as_admin: bool,
 ) -> Result<(), String> {
-    launcher::launch(app, id, platform, executable_path, launch_args, install_dir)
+    launcher::launch(
+        app,
+        id,
+        platform,
+        executable_path,
+        launch_args,
+        install_dir,
+        run_as_admin,
+    )
 }
 
 #[tauri::command]
 fn stop_game(id: i64, install_dir: Option<String>) -> Result<(), String> {
     launcher::stop(id, install_dir)
+}
+
+#[tauri::command]
+fn focus_running_game(id: i64) -> Result<(), String> {
+    launcher::focus_running_window(id)
+}
+
+#[tauri::command]
+fn focus_main_window(app: tauri::AppHandle) -> Result<(), String> {
+    use tauri::Manager;
+
+    launcher::minimize_running_windows();
+
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "main window not found".to_string())?;
+    let _ = window.unminimize();
+    window.show().map_err(|e| e.to_string())?;
+    window.set_focus().map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 fn external_navigation_plugin<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
@@ -124,7 +153,9 @@ pub fn run() {
             get_steam_owned_playtimes,
             resolve_steam_vanity_url,
             launch_game,
-            stop_game
+            stop_game,
+            focus_running_game,
+            focus_main_window
         ])
         .on_page_load(|webview, payload| {
             if webview.label() == "main" && matches!(payload.event(), PageLoadEvent::Finished) {

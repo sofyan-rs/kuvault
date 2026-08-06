@@ -9,10 +9,12 @@ export function LibraryGrid({
   games,
   view,
   onChange,
+  onUpdateGame,
 }: {
   games: Game[]
   view: ViewMode
   onChange: () => void
+  onUpdateGame: (id: number, patch: Partial<Game>) => void
 }) {
   if (games.length === 0) {
     return (
@@ -40,7 +42,12 @@ export function LibraryGrid({
           </TableHeader>
           <TableBody>
             {games.map((game) => (
-              <GameListRow key={game.id} game={game} onChange={onChange} />
+              <GameListRow
+                key={game.id}
+                game={game}
+                onChange={onChange}
+                onUpdateGame={onUpdateGame}
+              />
             ))}
           </TableBody>
         </Table>

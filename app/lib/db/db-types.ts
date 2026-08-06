@@ -14,6 +14,7 @@ export interface Game {
   playtime_seconds: number
   last_played_at: string | null
   is_favorite: number
+  run_as_admin: number
   created_at: string
 }
 
@@ -27,5 +28,6 @@ export type NewGame = Pick<Game, "name" | "platform" | "executable_path"> &
       | "cover_url"
       | "genres"
       | "description"
+      | "run_as_admin"
     >
   >

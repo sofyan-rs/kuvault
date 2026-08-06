@@ -42,3 +42,7 @@ export function useIsGameRunning(id: number): boolean {
   const runningIds = useContext(RunningGamesContext)
   return runningIds.has(id)
 }
+
+export function useRunningGameIds(): Set<number> {
+  return useContext(RunningGamesContext)
+}

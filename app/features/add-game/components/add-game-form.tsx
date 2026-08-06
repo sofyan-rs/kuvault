@@ -5,6 +5,7 @@ import { toast } from "sonner"
 
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
+import { Checkbox } from "~/components/ui/checkbox"
 import { DialogFooter } from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
@@ -48,6 +49,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
   const [coverUrl, setCoverUrl] = useState<string | null>(
     game?.cover_url ?? null
   )
+  const [runAsAdmin, setRunAsAdmin] = useState(game?.run_as_admin === 1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -84,6 +86,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
         genres: genres.trim() || undefined,
         description: description.trim() || undefined,
         cover_url: coverUrl ?? undefined,
+        run_as_admin: runAsAdmin ? 1 : 0,
       }
 
       if (game) {
@@ -132,6 +135,15 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
             </Button>
           </div>
         )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="run-as-admin"
+          checked={runAsAdmin}
+          onCheckedChange={(checked) => setRunAsAdmin(checked === true)}
+        />
+        <Label htmlFor="run-as-admin">Run as administrator</Label>
       </div>
 
       <div className="flex flex-col gap-1.5">

@@ -48,7 +48,7 @@ export default function GameDetail() {
         <GameInfoPanel
           game={game}
           onChange={refresh}
-          onDeleted={() => navigate("/")}
+          onDeleted={() => navigate(-1)}
           onEdit={() => setEditOpen(true)}
         />
       </div>

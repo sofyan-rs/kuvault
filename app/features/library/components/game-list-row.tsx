@@ -30,14 +30,23 @@ function formatPlaytime(seconds: number) {
   return `${hours.toFixed(1)} hrs`
 }
 
-export function GameListRow({ game, onChange }: { game: Game; onChange: () => void }) {
+export function GameListRow({
+  game,
+  onChange,
+  onUpdateGame,
+}: {
+  game: Game
+  onChange: () => void
+  onUpdateGame: (id: number, patch: Partial<Game>) => void
+}) {
   const isRunning = useIsGameRunning(game.id)
-  const { launch, launching, stop } = useLaunchGame(game, onChange)
+  const { launch, launching, stop, continueGame } = useLaunchGame(game, onChange)
   const [editOpen, setEditOpen] = useState(false)
 
   async function handleFavorite() {
-    await toggleFavorite(game.id, game.is_favorite === 0)
-    onChange()
+    const next = game.is_favorite === 0
+    onUpdateGame(game.id, { is_favorite: next ? 1 : 0 })
+    await toggleFavorite(game.id, next)
   }
 
   async function handleDelete() {
@@ -79,14 +88,23 @@ export function GameListRow({ game, onChange }: { game: Game; onChange: () => vo
       <TableCell className="w-px">
         <div className="flex items-center justify-end gap-1.5">
           {isRunning ? (
-            <Button
-              size="icon-sm"
-              variant="destructive"
-              onClick={stop}
-              aria-label="Stop"
-            >
-              <Square className="size-3.5 fill-current" />
-            </Button>
+            <>
+              <Button
+                size="icon-sm"
+                onClick={continueGame}
+                aria-label="Continue"
+              >
+                <Play className="size-3.5" />
+              </Button>
+              <Button
+                size="icon-sm"
+                variant="destructive"
+                onClick={stop}
+                aria-label="Stop"
+              >
+                <Square className="size-3.5 fill-current" />
+              </Button>
+            </>
           ) : (
             <Button
               size="icon-sm"

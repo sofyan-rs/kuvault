@@ -26,5 +26,11 @@ export function useGames() {
     refresh()
   }, [refresh])
 
-  return { games, loading, error, refresh }
+  const updateGame = useCallback((id: number, patch: Partial<Game>) => {
+    setGames((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, ...patch } : g))
+    )
+  }, [])
+
+  return { games, loading, error, refresh, updateGame }
 }

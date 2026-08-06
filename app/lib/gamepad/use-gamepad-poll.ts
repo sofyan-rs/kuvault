@@ -19,6 +19,7 @@ const BUTTON_X = 2
 const BUTTON_Y = 3
 const BUTTON_LB = 4
 const BUTTON_RB = 5
+const BUTTON_HOME = 16
 
 interface GamepadPollHandlers {
   onDirection: (direction: Direction) => void
@@ -28,6 +29,7 @@ interface GamepadPollHandlers {
   onButtonY: () => void
   onBumperLeft: () => void
   onBumperRight: () => void
+  onButtonHome: () => void
 }
 
 function readStickDirection(gamepad: Gamepad): Direction | null {
@@ -53,6 +55,7 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
     let prevY = false
     let prevLB = false
     let prevRB = false
+    let prevHome = false
     let activeDirection: Direction | null = null
     let directionStartedAt = 0
     let lastRepeatAt = 0
@@ -117,6 +120,10 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
       const rbPressed = gamepad.buttons[BUTTON_RB]?.pressed ?? false
       if (rbPressed && !prevRB) handlersRef.current.onBumperRight()
       prevRB = rbPressed
+
+      const homePressed = gamepad.buttons[BUTTON_HOME]?.pressed ?? false
+      if (homePressed && !prevHome) handlersRef.current.onButtonHome()
+      prevHome = homePressed
 
       frameId = requestAnimationFrame(tick)
     }

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Heart, Pencil, Play, Square, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -34,12 +35,14 @@ interface Props {
 }
 
 export function GameInfoPanel({ game, onChange, onDeleted, onEdit }: Props) {
-  const { launch, launching, stop } = useLaunchGame(game, onChange)
+  const { launch, launching, stop, continueGame } = useLaunchGame(game, onChange)
   const isRunning = useIsGameRunning(game.id)
+  const [isFavorite, setIsFavorite] = useState(!!game.is_favorite)
 
   async function handleFavorite() {
-    await toggleFavorite(game.id, game.is_favorite === 0)
-    onChange()
+    const next = !isFavorite
+    setIsFavorite(next)
+    await toggleFavorite(game.id, next)
   }
 
   async function handleDelete() {
@@ -77,14 +80,23 @@ export function GameInfoPanel({ game, onChange, onDeleted, onEdit }: Props) {
 
         <div className="flex items-center gap-2">
           {isRunning ? (
-            <Button
-              onClick={stop}
-              variant="destructive"
-              className="h-auto flex-1 gap-1.5 py-2 sm:flex-none sm:px-10"
-            >
-              <Square className="size-4 fill-current" />
-              Stop
-            </Button>
+            <>
+              <Button
+                onClick={continueGame}
+                className="h-auto flex-1 gap-1.5 py-2 sm:flex-none sm:px-10"
+              >
+                <Play className="size-4" />
+                Continue
+              </Button>
+              <Button
+                onClick={stop}
+                variant="destructive"
+                className="h-auto flex-1 gap-1.5 py-2 sm:flex-none sm:px-10"
+              >
+                <Square className="size-4 fill-current" />
+                Stop
+              </Button>
+            </>
           ) : (
             <Button
               onClick={launch}
@@ -101,13 +113,11 @@ export function GameInfoPanel({ game, onChange, onDeleted, onEdit }: Props) {
             size="icon"
             onClick={handleFavorite}
             aria-label="Favorite"
-            aria-pressed={!!game.is_favorite}
+            aria-pressed={isFavorite}
           >
             <Heart
               className={
-                game.is_favorite
-                  ? "size-4 fill-current text-red-500"
-                  : "size-4"
+                isFavorite ? "size-4 fill-current text-red-500" : "size-4"
               }
             />
           </Button>
