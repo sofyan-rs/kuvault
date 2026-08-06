@@ -1,6 +1,8 @@
+import { getVersion } from "@tauri-apps/api/app"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
+import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import {
   Dialog,
@@ -28,6 +30,13 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
   const [steamId, setSteamId] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [version, setVersion] = useState("")
+
+  useEffect(() => {
+    getVersion()
+      .then(setVersion)
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -63,7 +72,10 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Settings
+            {version && <Badge variant="secondary">v{version}</Badge>}
+          </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-6">
           <ThemeSelect />
