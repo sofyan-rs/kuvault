@@ -203,6 +203,15 @@ html.dark {
   color-scheme: dark;
 }
 
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Disable page-level overscroll and rubber-band scrolling so the UI feels more desktop-native. */
 html,
 body {
@@ -248,4 +257,9 @@ body {
 /* Guarantee a focus ring for gamepad-driven focus even if :focus-visible doesn't apply to programmatic .focus(). Elements with their own gamepad-active style (e.g. game cards) opt out via data-focus-style="border". */
 body[data-gamepad-focus="true"] :focus:not([data-focus-style="border"]) {
   @apply outline-none ring-2 ring-ring;
+}
+
+/* Hide mouse cursor while navigating via gamepad; reappears on mousemove (see gamepad-navigation-provider.tsx). */
+body[data-gamepad-focus="true"] {
+  cursor: none;
 }

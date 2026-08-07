@@ -1,6 +1,16 @@
 import { useEffect, useRef } from "react"
-import { useGamepadKeyboardState, useIsGamepadConnected } from "./gamepad-navigation-provider"
-import { BACKSPACE_KEY, DONE_KEY, LETTERS_KEY, rowsForMode, SHIFT_KEY, SYMBOLS_KEY } from "./keyboard-layout"
+import {
+  useGamepadKeyboardState,
+  useIsGamepadConnected,
+} from "./gamepad-navigation-provider"
+import {
+  BACKSPACE_KEY,
+  DONE_KEY,
+  LETTERS_KEY,
+  rowsForMode,
+  SHIFT_KEY,
+  SYMBOLS_KEY,
+} from "./keyboard-layout"
 import { cn } from "~/lib/utils"
 
 // Xbox controller face-button colors: A green, B red, X blue, Y yellow.
@@ -26,7 +36,7 @@ function ButtonGlyph({ children }: { children: string }) {
 function CornerBadge({ children }: { children: string }) {
   return (
     <span
-      className={`absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full border bg-background text-[10px] font-semibold ${XBOX_BUTTON_COLORS[children] ?? "border-transparent text-foreground"}`}
+      className={`absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full border bg-background text-xs font-semibold ${XBOX_BUTTON_COLORS[children] ?? "border-transparent text-foreground"}`}
     >
       {children}
     </span>
@@ -53,7 +63,8 @@ const KEY_SHORTCUT_BADGE: Record<string, string> = {
 }
 
 export function VirtualKeyboard() {
-  const { visible, minimized, row, col, shift, mode, previewValue, actions } = useGamepadKeyboardState()
+  const { visible, minimized, row, col, shift, mode, previewValue, actions } =
+    useGamepadKeyboardState()
   const gamepadConnected = useIsGamepadConnected()
   const previewRef = useRef<HTMLInputElement>(null)
 
@@ -104,7 +115,9 @@ export function VirtualKeyboard() {
                     : shift
                       ? key.toUpperCase()
                       : key
-              const badge = gamepadConnected ? KEY_SHORTCUT_BADGE[key] : undefined
+              const badge = gamepadConnected
+                ? KEY_SHORTCUT_BADGE[key]
+                : undefined
               return (
                 <button
                   key={c}
@@ -120,7 +133,8 @@ export function VirtualKeyboard() {
                       : isShiftOn
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-muted text-foreground",
-                    isActive && "ring-2 ring-primary ring-offset-1 ring-offset-background"
+                    isActive &&
+                      "ring-2 ring-primary ring-offset-1 ring-offset-background"
                   )}
                 >
                   {label}

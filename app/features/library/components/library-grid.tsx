@@ -2,6 +2,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components
 import { FocusZone } from "~/lib/gamepad/focus-zone"
 
 import { GameCard } from "./game-card"
+import { GameCarousel } from "./game-carousel"
 import { GameListRow } from "./game-list-row"
 import type { Game, ViewMode } from "../types"
 
@@ -10,11 +11,13 @@ export function LibraryGrid({
   view,
   onChange,
   onUpdateGame,
+  onActiveGameChange,
 }: {
   games: Game[]
   view: ViewMode
   onChange: () => void
   onUpdateGame: (id: number, patch: Partial<Game>) => void
+  onActiveGameChange?: (game: Game | undefined) => void
 }) {
   if (games.length === 0) {
     return (
@@ -52,6 +55,17 @@ export function LibraryGrid({
           </TableBody>
         </Table>
       </FocusZone>
+    )
+  }
+
+  if (view === "carousel") {
+    return (
+      <GameCarousel
+        games={games}
+        onChange={onChange}
+        onUpdateGame={onUpdateGame}
+        onActiveGameChange={onActiveGameChange}
+      />
     )
   }
 

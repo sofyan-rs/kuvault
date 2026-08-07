@@ -1,5 +1,12 @@
 import { useState } from "react"
-import { ChevronDown, LayoutGrid, List, Plus, Search } from "lucide-react"
+import {
+  ChevronDown,
+  GalleryHorizontal,
+  LayoutGrid,
+  List,
+  Plus,
+  Search,
+} from "lucide-react"
 
 import { Button } from "~/components/ui/button"
 import {
@@ -69,13 +76,13 @@ export function LibraryToolbar({
     <FocusZone id="toolbar" className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <div className="relative max-w-sm flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-foreground/70" />
           <Input
             data-gamepad-search
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search games..."
-            className="pl-8"
+            className="bg-accent/50 pl-8 backdrop-blur-sm"
           />
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -134,9 +141,14 @@ export function LibraryToolbar({
               value={activeGenre ?? "all"}
               onValueChange={(v) => onGenreChange(v === "all" ? null : v)}
             >
-              <SelectTrigger size="sm" className="w-36">
+              <SelectTrigger
+                size="sm"
+                className="w-36 bg-accent/50 backdrop-blur-sm"
+              >
                 <SelectValue>
-                  {(value: string) => (value === "all" ? "All categories" : value)}
+                  {(value: string) =>
+                    value === "all" ? "All categories" : value
+                  }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -154,7 +166,10 @@ export function LibraryToolbar({
             value={sort}
             onValueChange={(v) => onSortChange(v as SortKey)}
           >
-            <SelectTrigger size="sm" className="w-36">
+            <SelectTrigger
+              size="sm"
+              className="w-36 bg-accent/50 backdrop-blur-sm"
+            >
               <SelectValue>
                 {(value: SortKey) => SORT_LABELS[value]}
               </SelectValue>
@@ -166,7 +181,7 @@ export function LibraryToolbar({
             </SelectContent>
           </Select>
 
-          <div className="flex items-center rounded-md border border-border p-0.5">
+          <div className="flex items-center rounded-md border border-border bg-accent/50 p-0.5 backdrop-blur-sm">
             <button
               type="button"
               onClick={() => onViewChange("grid")}
@@ -192,6 +207,19 @@ export function LibraryToolbar({
               )}
             >
               <List className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewChange("carousel")}
+              aria-label="Carousel view"
+              className={cn(
+                "rounded px-1.5 py-1",
+                view === "carousel"
+                  ? "bg-secondary text-secondary-foreground"
+                  : "text-muted-foreground"
+              )}
+            >
+              <GalleryHorizontal className="size-4" />
             </button>
           </div>
         </div>

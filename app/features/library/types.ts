@@ -4,4 +4,4 @@ export type LibraryFilter = "all" | "favorites" | "steam" | "epic"
 
 export type SortKey = "name" | "recent" | "playtime"
 
-export type ViewMode = "grid" | "list"
+export type ViewMode = "grid" | "list" | "carousel"

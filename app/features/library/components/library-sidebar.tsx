@@ -138,7 +138,7 @@ export function LibrarySidebar({ filter, onFilterChange, games }: Props) {
   return (
     <aside
       className={cn(
-        "flex h-full shrink-0 flex-col gap-3 border-r border-border p-3 transition-[width] duration-200",
+        "relative z-10 flex h-full shrink-0 flex-col gap-3 border-r border-border bg-background p-3 transition-[width] duration-200",
         collapsed ? "w-14" : "w-56"
       )}
     >

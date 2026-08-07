@@ -5,7 +5,7 @@ import { LibrarySidebar } from "~/features/library/components/library-sidebar"
 import { LibraryToolbar } from "~/features/library/components/library-toolbar"
 import { useFilteredGames } from "~/features/library/hooks/use-filtered-games"
 import { useGames } from "~/features/library/hooks/use-games"
-import type { LibraryFilter, SortKey, ViewMode } from "~/features/library/types"
+import type { Game, LibraryFilter, SortKey, ViewMode } from "~/features/library/types"
 import { useIsGamepadConnected } from "~/lib/gamepad/gamepad-navigation-provider"
 
 export default function Home() {
@@ -19,6 +19,7 @@ export default function Home() {
   const [view, setView] = useState<ViewMode>(
     () => (localStorage.getItem("library-view") as ViewMode | null) ?? "grid",
   )
+  const [carouselActiveGame, setCarouselActiveGame] = useState<Game | undefined>()
 
   function handleViewChange(next: ViewMode) {
     setView(next)
@@ -40,11 +41,19 @@ export default function Home() {
   const filteredGames = useFilteredGames({ games, filter, genre, search, sort })
 
   return (
-    <div className="flex h-svh">
+    <div className="relative flex h-svh">
+      {view === "carousel" && carouselActiveGame?.cover_url ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center opacity-30 blur-2xl transition-[background-image] duration-500"
+          style={{ backgroundImage: `url(${carouselActiveGame.cover_url})` }}
+        />
+      ) : null}
+
       <LibrarySidebar filter={filter} onFilterChange={setFilter} games={games} />
 
       <div
-        className={`flex flex-1 flex-col gap-4 overflow-y-auto p-4 ${gamepadConnected ? "pb-14 scroll-pb-14" : ""}`}
+        className={`relative z-10 flex flex-1 flex-col gap-4 overflow-y-auto p-4 ${gamepadConnected ? "pb-14 scroll-pb-14" : ""}`}
       >
         <LibraryToolbar
           count={filteredGames.length}
@@ -69,6 +78,7 @@ export default function Home() {
             view={view}
             onChange={refresh}
             onUpdateGame={updateGame}
+            onActiveGameChange={setCarouselActiveGame}
           />
         )}
       </div>
