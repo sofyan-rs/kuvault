@@ -1,3 +1,5 @@
+import { Gamepad2 } from "lucide-react"
+
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table"
 import { FocusZone } from "~/lib/gamepad/focus-zone"
 
@@ -23,11 +25,16 @@ export function LibraryGrid({
 }) {
   if (games.length === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-1 py-24 text-center">
-        <p className="text-sm font-medium">No games here yet</p>
-        <p className="text-sm text-muted-foreground">
-          Add a game manually or scan Steam/Epic to get started.
-        </p>
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">
+        <div className="flex size-14 items-center justify-center rounded-full bg-muted">
+          <Gamepad2 className="size-7 text-muted-foreground" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium">No games here yet</p>
+          <p className="text-sm text-muted-foreground">
+            Add a game manually or scan Steam/Epic to get started.
+          </p>
+        </div>
       </div>
     )
   }

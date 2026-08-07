@@ -163,6 +163,21 @@ function dispatchKey(target: EventTarget, key: string) {
   target.dispatchEvent(new KeyboardEvent("keydown", { key, code: key, bubbles: true }))
 }
 
+// Right-stick scroll speed in px/frame at full tilt (~60fps -> up to ~1500px/s).
+const RIGHT_STICK_SCROLL_SPEED = 26
+
+function getScrollableAncestor(element: HTMLElement | null): HTMLElement | null {
+  let el = element
+  while (el && el !== document.body) {
+    if (el.scrollHeight > el.clientHeight) {
+      const overflowY = getComputedStyle(el).overflowY
+      if (overflowY === "auto" || overflowY === "scroll") return el
+    }
+    el = el.parentElement
+  }
+  return document.querySelector<HTMLElement>("[data-ui-scroll-container]")
+}
+
 export function GamepadNavigationProvider({ children }: { children: React.ReactNode }) {
   const zonesRef = useRef(new Map<ZoneId, HTMLElement>())
   const lastFocusedRef = useRef(new Map<ZoneId, HTMLElement>())
@@ -537,6 +552,16 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     playConfirmSfx()
   }, [])
 
+  // Scrolls whatever's under the current focus (or the app's outer scroll shell) with the
+  // right stick, so pages taller than the viewport (e.g. game detail at high UI scale) don't
+  // need a mouse/touch to reach.
+  const handleRightStickY = useCallback((value: number) => {
+    if (value === 0) return
+    if (keyboardVisible || sliderAdjustActive || getOpenDialog() || getOpenPopup()) return
+    const container = getScrollableAncestor(document.activeElement as HTMLElement | null)
+    container?.scrollBy({ top: value * RIGHT_STICK_SCROLL_SPEED })
+  }, [keyboardVisible, sliderAdjustActive])
+
   const { isConnected } = useGamepadPoll({
     onDirection: handleDirection,
     onButtonA: handleButtonA,
@@ -546,6 +571,7 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     onBumperLeft: handleBumperLeft,
     onBumperRight: handleBumperRight,
     onButtonHome: handleButtonHome,
+    onRightStickY: handleRightStickY,
   })
 
   useEffect(() => {

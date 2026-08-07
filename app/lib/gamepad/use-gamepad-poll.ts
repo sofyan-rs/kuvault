@@ -34,6 +34,8 @@ interface GamepadPollHandlers {
   onBumperLeft: () => void
   onBumperRight: () => void
   onButtonHome: () => void
+  /** Right stick vertical tilt, deadzone-applied and normalized to -1..1 (0 when centered). */
+  onRightStickY: (value: number) => void
 }
 
 function readStickDirection(gamepad: Gamepad): Direction | null {
@@ -141,6 +143,14 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
       if (homePressed && !prevHome) handlersRef.current.onButtonHome()
       prevHome = homePressed
 
+      const rawRightY = gamepad.axes[3] ?? 0
+      let rightStickY = 0
+      if (Math.abs(rawRightY) > DEADZONE) {
+        const normalized = (Math.abs(rawRightY) - DEADZONE) / (1 - DEADZONE)
+        rightStickY = normalized * Math.sign(rawRightY)
+      }
+      handlersRef.current.onRightStickY(rightStickY)
+
       const active =
         direction !== null ||
         aPressed ||
@@ -149,7 +159,8 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
         yPressed ||
         lbPressed ||
         rbPressed ||
-        homePressed
+        homePressed ||
+        rightStickY !== 0
       if (active) lastActivityAt = now
 
       schedule()

@@ -21,7 +21,7 @@ Desktop game library manager for Windows. Unifies Steam, Epic, and manually-adde
 - Optional Steam Web API + SteamID64 sync for real playtime import (paste a profile URL — it resolves automatically).
 - Favorites, custom tags, grid/list view toggle.
 - Full gamepad navigation: D-pad/stick movement, A/B/X/Y actions, virtual on-screen keyboard, LB/RB section cycling.
-- Console-style Home button: jump back to KuVault while a game is running, then Continue or Stop it from the library — toggleable, on by default.
+- Console-style Home button: jump back to KuVault while a game is running, then Continue or Stop it from the library — toggleable, active by default.
 - Per-game "Run as administrator" launch option, for games that require elevation.
 
 ## Tech stack
@@ -40,7 +40,7 @@ bun run tauri dev
 ```
 
 ```bash
-bun run typecheck   # react-router typegen + tsc
+bun run typecheck    # react-router typegen + tsc
 bun run build        # react-router build
 ```
 

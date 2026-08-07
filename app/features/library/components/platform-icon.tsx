@@ -1,3 +1,5 @@
+import { Cpu, Gamepad2 } from "lucide-react"
+
 import type { Platform } from "../types"
 
 function SteamIcon({ className }: { className?: string }) {
@@ -30,5 +32,6 @@ export function PlatformIcon({
 }) {
   if (platform === "steam") return <SteamIcon className={className} />
   if (platform === "epic") return <EpicIcon className={className} />
-  return null
+  if (platform === "emulator") return <Cpu className={className} />
+  return <Gamepad2 className={className} />
 }

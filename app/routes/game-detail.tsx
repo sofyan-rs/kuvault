@@ -6,13 +6,16 @@ import { Button } from "~/components/ui/button"
 import { EditGameDialog } from "~/features/add-game/components/edit-game-dialog"
 import { GameInfoPanel } from "~/features/game-detail/components/game-info-panel"
 import { useGame } from "~/features/game-detail/hooks/use-game"
+import { useIsGamepadConnected } from "~/lib/gamepad/gamepad-navigation-provider"
 import { useOnLaunchFinished } from "~/lib/tauri/running-games"
+import { cn } from "~/lib/utils"
 
 export default function GameDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { game, loading, refresh } = useGame(Number(id))
   const [editOpen, setEditOpen] = useState(false)
+  const gamepadConnected = useIsGamepadConnected()
   useOnLaunchFinished(refresh)
 
   if (loading) {
@@ -25,23 +28,30 @@ export default function GameDetail() {
 
   return (
     <div className="relative min-h-svh">
-      {game.cover_url ? (
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <img
-            src={game.cover_url}
-            alt=""
-            className="size-full scale-110 object-cover blur-2xl"
-          />
-          <div className="absolute inset-0 bg-background/80" />
-          <div className="absolute inset-0 bg-linear-to-b from-background/40 via-background/70 to-background" />
-        </div>
-      ) : null}
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-128 overflow-hidden">
+        {game.cover_url ? (
+          <>
+            <img
+              src={game.cover_url}
+              alt=""
+              className="size-full scale-125 object-cover opacity-60 blur-3xl"
+            />
+            <div className="absolute inset-0 bg-linear-to-b from-background/50 via-background/80 to-background" />
+          </>
+        ) : (
+          <div className="size-full bg-linear-to-b from-primary/15 via-primary/5 to-transparent" />
+        )}
+      </div>
 
-      <div className="mx-auto max-w-5xl p-6">
+      <div
+        className={cn(
+          "mx-auto w-full max-w-6xl px-6 pt-4 pb-12 lg:px-8",
+          gamepadConnected && "pb-24",
+        )}
+      >
         <Button
           variant="ghost"
-          size="sm"
-          className="mb-4 h-auto gap-1.5 px-3 py-2"
+          className="mb-5 -ml-2 h-10 gap-2 px-4 text-base"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="size-5" />
