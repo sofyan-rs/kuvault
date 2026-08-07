@@ -1,4 +1,3 @@
-import { getCurrentWindow } from "@tauri-apps/api/window"
 import { invoke } from "@tauri-apps/api/core"
 import { toast } from "sonner"
 
@@ -51,7 +50,7 @@ export function PowerDialog({ open, onOpenChange }: Props) {
 
   async function handleExit() {
     onOpenChange(false)
-    await getCurrentWindow().close()
+    await invoke("exit_app")
   }
 
   return (
