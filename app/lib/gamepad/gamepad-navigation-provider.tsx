@@ -166,6 +166,9 @@ function dispatchKey(target: EventTarget, key: string) {
 export function GamepadNavigationProvider({ children }: { children: React.ReactNode }) {
   const zonesRef = useRef(new Map<ZoneId, HTMLElement>())
   const lastFocusedRef = useRef(new Map<ZoneId, HTMLElement>())
+  // Mirrors lastFocusedRef by a stable `href` key instead of the DOM element, since elements
+  // (e.g. game cards) get destroyed and recreated when navigating away and back (route remount).
+  const lastFocusedKeyRef = useRef(new Map<ZoneId, string>())
   const activeElementRef = useRef<HTMLElement | null>(null)
   const bumperHandlersRef = useRef<BumperHandlers | null>(null)
   const [bumpersActive, setBumpersActive] = useState(false)
@@ -204,13 +207,14 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     setSliderAdjustActive(false)
   }, [])
 
-  const focusElement = useCallback((element: HTMLElement) => {
+  const focusElement = useCallback((element: HTMLElement, options?: { silent?: boolean }) => {
     activeElementRef.current?.removeAttribute("data-gamepad-active")
-    document.body.setAttribute("data-gamepad-focus", "true")
+    if (!options?.silent) document.body.setAttribute("data-gamepad-focus", "true")
     element.setAttribute("data-gamepad-active", "true")
     activeElementRef.current = element
-    element.focus()
-    element.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    element.focus({ preventScroll: options?.silent })
+    element.scrollIntoView({ block: "nearest", behavior: options?.silent ? "instant" : "smooth" })
+    if (options?.silent) return
     playMoveSfx()
   }, [])
 
@@ -226,9 +230,30 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
     setKeyboardPreview(element.value)
   }, [])
 
-  const register = useCallback((id: ZoneId, element: HTMLElement) => {
-    zonesRef.current.set(id, element)
-  }, [])
+  const register = useCallback(
+    (id: ZoneId, element: HTMLElement) => {
+      zonesRef.current.set(id, element)
+
+      // Zone just (re)mounted (e.g. navigated back from game detail to the library grid) —
+      // restore the previously focused card by its remembered href key, since the actual DOM
+      // element from before is gone.
+      const key = lastFocusedKeyRef.current.get(id)
+      if (key) {
+        const restored = element.querySelector<HTMLElement>(
+          `[href="${CSS.escape(key)}"]`,
+        )
+        if (restored) {
+          lastFocusedRef.current.set(id, restored)
+          // Silent (no sfx/scroll-jump/gamepad-focus-mode) unless we were already in gamepad
+          // focus mode, e.g. mouse-clicked a card, went to detail, came back with mouse — just
+          // reapply the visual highlight without hijacking focus/scroll for a mouse user.
+          const wasGamepadFocus = document.body.getAttribute("data-gamepad-focus") === "true"
+          focusElement(restored, { silent: !wasGamepadFocus })
+        }
+      }
+    },
+    [focusElement],
+  )
   const unregister = useCallback((id: ZoneId) => {
     zonesRef.current.delete(id)
   }, [])
@@ -297,6 +322,8 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
           const next = findNearestInDirection(active, candidates, direction)
           if (next) {
             lastFocusedRef.current.set(zoneId, next)
+            const key = next.getAttribute("href")
+            if (key) lastFocusedKeyRef.current.set(zoneId, key)
             focusElement(next)
             return
           }
@@ -312,6 +339,8 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
               remembered && candidates.includes(remembered) ? remembered : candidates[0]
             if (target) {
               lastFocusedRef.current.set(nextZoneId, target)
+              const key = target.getAttribute("href")
+              if (key) lastFocusedKeyRef.current.set(nextZoneId, key)
               focusElement(target)
             }
           }
@@ -544,10 +573,22 @@ export function GamepadNavigationProvider({ children }: { children: React.ReactN
       ) {
         openKeyboardFor(target)
       }
+
+      // Remember focus by a stable href key (not the DOM element, which gets destroyed and
+      // recreated on route remount) so it can be restored e.g. after navigating to game detail
+      // and back, however focus got there (gamepad move, mouse click, tab).
+      if (target) {
+        const zoneId = findCurrentZone(target)
+        const key = target.getAttribute("href")
+        if (zoneId && key) {
+          lastFocusedRef.current.set(zoneId, target)
+          lastFocusedKeyRef.current.set(zoneId, key)
+        }
+      }
     }
     document.addEventListener("focusin", handleFocusIn)
     return () => document.removeEventListener("focusin", handleFocusIn)
-  }, [closeKeyboard, exitSliderAdjust, openKeyboardFor])
+  }, [closeKeyboard, exitSliderAdjust, openKeyboardFor, findCurrentZone])
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {

@@ -12,12 +12,14 @@ export function LibraryGrid({
   onChange,
   onUpdateGame,
   onActiveGameChange,
+  initialActiveGameId,
 }: {
   games: Game[]
   view: ViewMode
   onChange: () => void
   onUpdateGame: (id: number, patch: Partial<Game>) => void
   onActiveGameChange?: (game: Game | undefined) => void
+  initialActiveGameId?: number
 }) {
   if (games.length === 0) {
     return (
@@ -65,6 +67,7 @@ export function LibraryGrid({
         onChange={onChange}
         onUpdateGame={onUpdateGame}
         onActiveGameChange={onActiveGameChange}
+        initialActiveGameId={initialActiveGameId}
       />
     )
   }

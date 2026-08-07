@@ -22,14 +22,19 @@ export function GameCarousel({
   onChange,
   onUpdateGame,
   onActiveGameChange,
+  initialActiveGameId,
 }: {
   games: Game[]
   onChange: () => void
   onUpdateGame: (id: number, patch: Partial<Game>) => void
   onActiveGameChange?: (game: Game | undefined) => void
+  initialActiveGameId?: number
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
-  const [activeId, setActiveId] = useState(games[0]?.id)
+  const [activeId, setActiveId] = useState(
+    () =>
+      games.find((g) => g.id === initialActiveGameId)?.id ?? games[0]?.id,
+  )
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
 
