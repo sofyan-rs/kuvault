@@ -38,10 +38,10 @@ export function CoverPicker({ defaultQuery, coverUrl, onSelect }: Props) {
             <button
               key={cover.url}
               type="button"
-              onClick={() => onSelect(coverUrl === cover.url ? null : cover.url)}
+              onClick={() => onSelect(coverUrl === cover.thumb_url ? null : cover.thumb_url)}
               className={cn(
                 "aspect-3/4 overflow-hidden rounded-md ring-2 ring-transparent",
-                coverUrl === cover.url && "ring-ring",
+                coverUrl === cover.thumb_url && "ring-ring",
               )}
             >
               <img src={cover.thumb_url} alt="" className="size-full object-cover" />

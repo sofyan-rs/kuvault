@@ -40,7 +40,7 @@ export function GameListRow({
   onUpdateGame: (id: number, patch: Partial<Game>) => void
 }) {
   const isRunning = useIsGameRunning(game.id)
-  const { launch, launching, stop, continueGame } = useLaunchGame(game, onChange)
+  const { launch, launching, stop, continueGame } = useLaunchGame(game)
   const [editOpen, setEditOpen] = useState(false)
 
   async function handleFavorite() {

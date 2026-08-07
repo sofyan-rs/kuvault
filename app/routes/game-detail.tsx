@@ -6,12 +6,14 @@ import { Button } from "~/components/ui/button"
 import { EditGameDialog } from "~/features/add-game/components/edit-game-dialog"
 import { GameInfoPanel } from "~/features/game-detail/components/game-info-panel"
 import { useGame } from "~/features/game-detail/hooks/use-game"
+import { useOnLaunchFinished } from "~/lib/tauri/running-games"
 
 export default function GameDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { game, loading, refresh } = useGame(Number(id))
   const [editOpen, setEditOpen] = useState(false)
+  useOnLaunchFinished(refresh)
 
   if (loading) {
     return <p className="p-6 text-sm text-muted-foreground">Loading...</p>
@@ -47,7 +49,6 @@ export default function GameDetail() {
         </Button>
         <GameInfoPanel
           game={game}
-          onChange={refresh}
           onDeleted={() => navigate(-1)}
           onEdit={() => setEditOpen(true)}
         />

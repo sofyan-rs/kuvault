@@ -8,10 +8,12 @@ import { useGames } from "~/features/library/hooks/use-games"
 import { homeState } from "~/features/library/hooks/use-home-state"
 import type { Game, LibraryFilter, SortKey, ViewMode } from "~/features/library/types"
 import { useIsGamepadConnected } from "~/lib/gamepad/gamepad-navigation-provider"
+import { useOnLaunchFinished } from "~/lib/tauri/running-games"
 
 export default function Home() {
   const { games, loading, refresh, updateGame } = useGames()
   const gamepadConnected = useIsGamepadConnected()
+  useOnLaunchFinished(refresh)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const [filter, setFilterState] = useState<LibraryFilter>(homeState.filter)

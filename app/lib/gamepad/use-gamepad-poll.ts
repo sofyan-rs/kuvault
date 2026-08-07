@@ -5,6 +5,10 @@ import type { Direction } from "./types"
 const DEADZONE = 0.35
 const REPEAT_INITIAL_DELAY_MS = 400
 const REPEAT_RATE_MS = 150
+// After this long with no input change, drop from a 60fps rAF loop down to a low-rate
+// setTimeout poll — a connected-but-idle controller otherwise spins the CPU for hours.
+const IDLE_AFTER_MS = 5000
+const IDLE_POLL_INTERVAL_MS = 250
 
 const DPAD_BUTTON_DIRECTIONS: Record<number, Direction> = {
   12: "up",
@@ -49,6 +53,7 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
 
   useEffect(() => {
     let frameId: number | null = null
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
     let prevA = false
     let prevB = false
     let prevX = false
@@ -59,13 +64,24 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
     let activeDirection: Direction | null = null
     let directionStartedAt = 0
     let lastRepeatAt = 0
+    let lastActivityAt = 0
+
+    function schedule() {
+      frameId = null
+      timeoutId = null
+      if (performance.now() - lastActivityAt > IDLE_AFTER_MS) {
+        timeoutId = setTimeout(tick, IDLE_POLL_INTERVAL_MS)
+      } else {
+        frameId = requestAnimationFrame(tick)
+      }
+    }
 
     function tick() {
       const gamepads = navigator.getGamepads()
       const gamepad = gamepads.find((g) => g && g.mapping === "standard") ?? null
 
       if (!gamepad) {
-        frameId = requestAnimationFrame(tick)
+        schedule()
         return
       }
 
@@ -125,12 +141,24 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
       if (homePressed && !prevHome) handlersRef.current.onButtonHome()
       prevHome = homePressed
 
-      frameId = requestAnimationFrame(tick)
+      const active =
+        direction !== null ||
+        aPressed ||
+        bPressed ||
+        xPressed ||
+        yPressed ||
+        lbPressed ||
+        rbPressed ||
+        homePressed
+      if (active) lastActivityAt = now
+
+      schedule()
     }
 
     function handleConnected() {
       setIsConnected(true)
-      if (frameId === null) frameId = requestAnimationFrame(tick)
+      lastActivityAt = performance.now()
+      if (frameId === null && timeoutId === null) frameId = requestAnimationFrame(tick)
     }
 
     function handleDisconnected() {
@@ -140,6 +168,10 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
         if (frameId !== null) {
           cancelAnimationFrame(frameId)
           frameId = null
+        }
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId)
+          timeoutId = null
         }
       }
     }
@@ -153,6 +185,7 @@ export function useGamepadPoll(handlers: GamepadPollHandlers) {
       window.removeEventListener("gamepadconnected", handleConnected)
       window.removeEventListener("gamepaddisconnected", handleDisconnected)
       if (frameId !== null) cancelAnimationFrame(frameId)
+      if (timeoutId !== null) clearTimeout(timeoutId)
     }
   }, [])
 

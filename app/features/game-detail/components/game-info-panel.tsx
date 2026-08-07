@@ -29,13 +29,12 @@ function formatPlaytime(seconds: number) {
 
 interface Props {
   game: Game
-  onChange: () => void
   onDeleted: () => void
   onEdit: () => void
 }
 
-export function GameInfoPanel({ game, onChange, onDeleted, onEdit }: Props) {
-  const { launch, launching, stop, continueGame } = useLaunchGame(game, onChange)
+export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
+  const { launch, launching, stop, continueGame } = useLaunchGame(game)
   const isRunning = useIsGameRunning(game.id)
   const [isFavorite, setIsFavorite] = useState(!!game.is_favorite)
 

@@ -19,13 +19,11 @@ import type { Game } from "../types"
 
 export function GameCarousel({
   games,
-  onChange,
   onUpdateGame,
   onActiveGameChange,
   initialActiveGameId,
 }: {
   games: Game[]
-  onChange: () => void
   onUpdateGame: (id: number, patch: Partial<Game>) => void
   onActiveGameChange?: (game: Game | undefined) => void
   initialActiveGameId?: number
@@ -125,7 +123,6 @@ export function GameCarousel({
         <GameCarouselActions
           key={activeGame.id}
           game={activeGame}
-          onChange={onChange}
           onUpdateGame={onUpdateGame}
         />
       ) : null}
@@ -135,18 +132,13 @@ export function GameCarousel({
 
 function GameCarouselActions({
   game,
-  onChange,
   onUpdateGame,
 }: {
   game: Game
-  onChange: () => void
   onUpdateGame: (id: number, patch: Partial<Game>) => void
 }) {
   const isRunning = useIsGameRunning(game.id)
-  const { launch, launching, stop, continueGame } = useLaunchGame(
-    game,
-    onChange
-  )
+  const { launch, launching, stop, continueGame } = useLaunchGame(game)
 
   async function handleFavorite() {
     const next = game.is_favorite === 0

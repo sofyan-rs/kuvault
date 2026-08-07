@@ -64,7 +64,6 @@ export function LibraryGrid({
     return (
       <GameCarousel
         games={games}
-        onChange={onChange}
         onUpdateGame={onUpdateGame}
         onActiveGameChange={onActiveGameChange}
         initialActiveGameId={initialActiveGameId}

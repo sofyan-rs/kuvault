@@ -5,7 +5,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use serde::Serialize;
-use sysinfo::{Pid, ProcessesToUpdate, System};
+use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_opener::OpenerExt;
 
@@ -45,7 +45,11 @@ fn is_under_install_dir(exe_path: &Path, install_dir: &Path) -> bool {
 }
 
 fn find_process_under(system: &mut System, install_dir: &Path) -> Option<Pid> {
-    system.refresh_all();
+    system.refresh_processes_specifics(
+        ProcessesToUpdate::All,
+        true,
+        ProcessRefreshKind::new().with_exe(UpdateKind::OnlyIfNotSet),
+    );
     system
         .processes()
         .iter()
@@ -65,6 +69,7 @@ pub fn launch(
     launch_args: Option<String>,
     install_dir: Option<String>,
     run_as_admin: bool,
+    source_id: Option<String>,
 ) -> Result<(), String> {
     if run_as_admin && platform != "steam" {
         #[cfg(target_os = "windows")]
@@ -124,7 +129,12 @@ pub fn launch(
                 let _ = app.emit("game-launch-started", LaunchStarted { id });
                 let started_at = Instant::now();
 
-                while system.refresh_processes(ProcessesToUpdate::Some(&[pid]), true) > 0 {
+                while system.refresh_processes_specifics(
+                    ProcessesToUpdate::Some(&[pid]),
+                    true,
+                    ProcessRefreshKind::new(),
+                ) > 0
+                {
                     std::thread::sleep(STEAM_POLL_INTERVAL);
                 }
 
@@ -145,6 +155,67 @@ pub fn launch(
         #[cfg(not(target_os = "windows"))]
         {
             return Err("Run as administrator is only supported on Windows".to_string());
+        }
+    }
+
+    // Launching the exe directly skips Epic's own auth/session args (-epicapp, -epicenv,
+    // -EpicPortal, -AUTH_*), which some games (e.g. DNF Duel's anti-cheat/EOS layer) rely on to
+    // detect a valid Epic session — without them they can spawn an extra helper/auth window on
+    // top of the game window. Going through the Epic protocol URL instead makes the Epic client
+    // launch the game itself with the right args, same as launching from the Epic library.
+    if platform == "epic" {
+        if let Some(source_id) = source_id.filter(|id| !id.is_empty()) {
+            let url = format!(
+                "com.epicgames.launcher://apps/{source_id}?action=launch&silent=true"
+            );
+            app.opener()
+                .open_url(&url, None::<&str>)
+                .map_err(|e| e.to_string())?;
+
+            let Some(install_dir) = install_dir.filter(|dir| !dir.is_empty()) else {
+                return Ok(());
+            };
+
+            std::thread::spawn(move || {
+                let install_dir = Path::new(&install_dir);
+                let mut system = System::new();
+                let detect_started_at = Instant::now();
+
+                let pid = loop {
+                    if let Some(pid) = find_process_under(&mut system, install_dir) {
+                        break pid;
+                    }
+                    if detect_started_at.elapsed() > STEAM_DETECT_TIMEOUT {
+                        return;
+                    }
+                    std::thread::sleep(STEAM_POLL_INTERVAL);
+                };
+
+                set_running_pid(id, pid.as_u32());
+                let _ = app.emit("game-launch-started", LaunchStarted { id });
+                let started_at = Instant::now();
+
+                while system.refresh_processes_specifics(
+                    ProcessesToUpdate::Some(&[pid]),
+                    true,
+                    ProcessRefreshKind::new(),
+                ) > 0
+                {
+                    std::thread::sleep(STEAM_POLL_INTERVAL);
+                }
+
+                clear_running_pid(id);
+                let playtime_seconds = started_at.elapsed().as_secs();
+                let _ = app.emit(
+                    "game-launch-finished",
+                    LaunchFinished {
+                        id,
+                        playtime_seconds,
+                    },
+                );
+            });
+
+            return Ok(());
         }
     }
 
@@ -176,7 +247,12 @@ pub fn launch(
             let _ = app.emit("game-launch-started", LaunchStarted { id });
             let started_at = Instant::now();
 
-            while system.refresh_processes(ProcessesToUpdate::Some(&[pid]), true) > 0 {
+            while system.refresh_processes_specifics(
+                ProcessesToUpdate::Some(&[pid]),
+                true,
+                ProcessRefreshKind::new(),
+            ) > 0
+            {
                 std::thread::sleep(STEAM_POLL_INTERVAL);
             }
 
@@ -245,7 +321,11 @@ pub fn stop(id: i64, install_dir: Option<String>) -> Result<(), String> {
         .map(Pid::from_u32);
 
     let mut system = System::new();
-    system.refresh_all();
+    system.refresh_processes_specifics(
+        ProcessesToUpdate::All,
+        true,
+        ProcessRefreshKind::new().with_exe(UpdateKind::OnlyIfNotSet),
+    );
 
     let mut pids_to_kill: Vec<Pid> = Vec::new();
 
@@ -329,7 +409,11 @@ pub fn focus_running_window(id: i64) -> Result<(), String> {
         // the actual window lives on the child's pid, not the one KuVault tracked at launch, so
         // search the whole process tree rooted at the tracked pid.
         let mut system = System::new();
-        system.refresh_all();
+        system.refresh_processes_specifics(
+            ProcessesToUpdate::All,
+            true,
+            ProcessRefreshKind::new().with_exe(UpdateKind::OnlyIfNotSet),
+        );
         let root = Pid::from_u32(pid);
         let mut candidates = vec![root];
         collect_descendants(&system, root, &mut candidates);
@@ -361,7 +445,11 @@ pub fn minimize_running_windows() {
             .unwrap_or_default();
 
         let mut system = System::new();
-        system.refresh_all();
+        system.refresh_processes_specifics(
+            ProcessesToUpdate::All,
+            true,
+            ProcessRefreshKind::new().with_exe(UpdateKind::OnlyIfNotSet),
+        );
 
         for pid in tracked_pids {
             let root = Pid::from_u32(pid);

@@ -41,7 +41,7 @@ pub async fn resolve_vanity_url(api_key: String, vanity: String) -> Result<Optio
         api_key, vanity
     );
 
-    let client = reqwest::Client::new();
+    let client = crate::services::http::client();
     let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
     let Ok(parsed) = response.json::<ResolveVanityResponse>().await else {
@@ -63,7 +63,7 @@ pub async fn get_owned_playtimes(
         api_key, steam_id
     );
 
-    let client = reqwest::Client::new();
+    let client = crate::services::http::client();
     let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
     let Ok(parsed) = response.json::<OwnedGamesResponse>().await else {

@@ -30,7 +30,7 @@ struct GridResult {
 }
 
 pub async fn cover_for_steam_appid(appid: String, api_key: String) -> Result<Option<String>, String> {
-    let client = reqwest::Client::new();
+    let client = crate::services::http::client();
     let auth = format!("Bearer {}", api_key);
 
     let grids_url = format!("{}/grids/steam/{}", BASE_URL, appid);
@@ -45,11 +45,13 @@ pub async fn cover_for_steam_appid(appid: String, api_key: String) -> Result<Opt
         return Ok(None);
     };
 
-    Ok(grids.data.into_iter().next().map(|g| g.url))
+    // Return the thumb, not the full grid image — this is stored as-is in the games table and
+    // only ever displayed at card/panel size, so there's no reason to hold the full-res bitmap.
+    Ok(grids.data.into_iter().next().map(|g| g.thumb))
 }
 
 pub async fn search_covers(query: String, api_key: String) -> Result<Vec<CoverOption>, String> {
-    let client = reqwest::Client::new();
+    let client = crate::services::http::client();
     let auth = format!("Bearer {}", api_key);
 
     let search_url = format!(

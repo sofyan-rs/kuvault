@@ -1,24 +1,10 @@
-import { useEffect, useState } from "react"
-import { listen } from "@tauri-apps/api/event"
 import { toast } from "sonner"
 
-import { addPlaytime, getSetting, setPlaytime } from "~/lib/db/db"
+import { getSetting, setPlaytime } from "~/lib/db/db"
 import type { Game } from "~/lib/db/db-types"
 import { STEAM_API_KEY_SETTING, STEAM_ID_SETTING } from "~/features/settings/components/steam-api-form"
 import { trackedInvoke } from "~/lib/tauri/tauri"
-
-interface LaunchStarted {
-  id: number
-}
-
-interface LaunchFinished {
-  id: number
-  playtime_seconds: number
-}
-
-// Safety net for platforms (Steam without a recorded install dir) where the backend can never
-// detect the process starting — don't leave the button disabled forever.
-const LAUNCH_TIMEOUT_MS = 30000
+import { useIsGameLaunching, useLaunchActions } from "~/lib/tauri/running-games"
 
 // Tauri's invoke() rejects with whatever the Rust side's Result::Err serializes to — for this
 // backend that's a plain string, not an Error instance, so `err instanceof Error` misses it and
@@ -29,24 +15,9 @@ function toErrorMessage(err: unknown): string {
   return "Failed to launch game"
 }
 
-export function useLaunchGame(game: Game, onFinished: () => void) {
-  const [launching, setLaunching] = useState(false)
-
-  useEffect(() => {
-    const unlistenStarted = listen<LaunchStarted>("game-launch-started", (event) => {
-      if (event.payload.id !== game.id) return
-      setLaunching(false)
-    })
-    const unlistenFinished = listen<LaunchFinished>("game-launch-finished", (event) => {
-      if (event.payload.id !== game.id) return
-      setLaunching(false)
-      addPlaytime(game.id, event.payload.playtime_seconds).then(onFinished)
-    })
-    return () => {
-      unlistenStarted.then((fn) => fn())
-      unlistenFinished.then((fn) => fn())
-    }
-  }, [game.id, onFinished])
+export function useLaunchGame(game: Game) {
+  const launching = useIsGameLaunching(game.id)
+  const { beginLaunch, cancelLaunch } = useLaunchActions()
 
   async function syncSteamPlaytime() {
     if (game.platform !== "steam" || !game.source_id) return
@@ -74,7 +45,7 @@ export function useLaunchGame(game: Game, onFinished: () => void) {
   }
 
   async function launch() {
-    setLaunching(true)
+    beginLaunch(game.id)
     try {
       await syncSteamPlaytime()
       await trackedInvoke("launch_game", {
@@ -84,11 +55,11 @@ export function useLaunchGame(game: Game, onFinished: () => void) {
         launchArgs: game.launch_args,
         installDir: game.install_dir,
         runAsAdmin: game.run_as_admin === 1,
+        sourceId: game.source_id,
       })
-      setTimeout(() => setLaunching(false), LAUNCH_TIMEOUT_MS)
     } catch (err) {
       toast.error(toErrorMessage(err))
-      setLaunching(false)
+      cancelLaunch(game.id)
     }
   }
 

@@ -86,11 +86,11 @@ export function ScanResultsDialog({
           })) ?? undefined
         )
       }
-      const covers = await trackedInvoke<{ url: string }[]>("search_steamgriddb_covers", {
+      const covers = await trackedInvoke<{ thumb_url: string }[]>("search_steamgriddb_covers", {
         query: game.name,
         apiKey,
       })
-      return covers[0]?.url
+      return covers[0]?.thumb_url
     } catch {
       return undefined
     }
