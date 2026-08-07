@@ -2341,6 +2341,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "kuvault"
+version = "1.0.0"
+dependencies = [
+ "log",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "shell-words",
+ "sysinfo",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-autostart",
+ "tauri-plugin-dialog",
+ "tauri-plugin-log",
+ "tauri-plugin-opener",
+ "tauri-plugin-sql",
+ "urlencoding",
+ "windows-sys 0.59.0",
+ "winreg 0.56.0",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4787,29 +4810,6 @@ dependencies = [
  "syn 2.0.119",
  "tauri-codegen",
  "tauri-utils",
-]
-
-[[package]]
-name = "tauri-native"
-version = "1.0.0"
-dependencies = [
- "log",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "shell-words",
- "sysinfo",
- "tauri",
- "tauri-build",
- "tauri-plugin-autostart",
- "tauri-plugin-dialog",
- "tauri-plugin-log",
- "tauri-plugin-opener",
- "tauri-plugin-sql",
- "urlencoding",
- "windows-sys 0.59.0",
- "winreg 0.56.0",
 ]
 
 [[package]]

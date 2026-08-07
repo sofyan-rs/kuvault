@@ -16,8 +16,15 @@ import { getSetting, setSetting } from "~/lib/db/db"
 import { AutostartToggle } from "./autostart-toggle"
 import { GamepadHomeToggle } from "./gamepad-home-toggle"
 import { LaunchFullscreenToggle } from "./launch-fullscreen-toggle"
-import { STEAM_API_KEY_SETTING, STEAM_ID_SETTING, SteamApiForm } from "./steam-api-form"
-import { STEAMGRIDDB_KEY_SETTING, SteamGridDbKeyForm } from "./steamgriddb-key-form"
+import {
+  STEAM_API_KEY_SETTING,
+  STEAM_ID_SETTING,
+  SteamApiForm,
+} from "./steam-api-form"
+import {
+  STEAMGRIDDB_KEY_SETTING,
+  SteamGridDbKeyForm,
+} from "./steamgriddb-key-form"
 import { ThemeSelect } from "./theme-select"
 import { UiScaleSlider } from "./ui-scale-slider"
 
@@ -82,10 +89,14 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
         <div className="flex flex-col gap-6">
           <ThemeSelect />
           <UiScaleSlider />
-          <GamepadHomeToggle />
           <AutostartToggle />
           <LaunchFullscreenToggle />
-          <SteamGridDbKeyForm value={gridDbKey} onChange={setGridDbKey} disabled={loading} />
+          <GamepadHomeToggle />
+          <SteamGridDbKeyForm
+            value={gridDbKey}
+            onChange={setGridDbKey}
+            disabled={loading}
+          />
           <SteamApiForm
             apiKey={steamApiKey}
             onApiKeyChange={setSteamApiKey}

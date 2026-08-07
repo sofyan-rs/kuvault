@@ -1,5 +1,5 @@
 [package]
-name = "tauri-native"
+name = "kuvault"
 version = "1.0.0"
 description = "A Tauri App"
 authors = ["Sofyan R."]

@@ -16,6 +16,7 @@ import { GamepadHintBar } from "./lib/gamepad/gamepad-hint-bar"
 import { GamepadNavigationProvider } from "./lib/gamepad/gamepad-navigation-provider"
 import { VirtualKeyboard } from "./lib/gamepad/virtual-keyboard"
 import { RunningGamesProvider } from "./lib/tauri/running-games"
+import { SplashScreen } from "./components/splash-screen"
 import { ApplyLaunchFullscreen } from "./lib/settings/apply-launch-fullscreen"
 import { themeInitScript } from "./lib/settings/theme"
 import { uiScaleInitScript } from "./lib/settings/ui-scale"
@@ -32,6 +33,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: uiScaleInitScript }} />
       </head>
       <body>
+        <SplashScreen />
         <ExternalLinkGuard />
         {import.meta.env.DEV ? <DebugPanel /> : null}
         <RunningGamesProvider>
