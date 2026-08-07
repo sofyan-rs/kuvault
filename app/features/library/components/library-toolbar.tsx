@@ -76,13 +76,13 @@ export function LibraryToolbar({
     <FocusZone id="toolbar" className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <div className="relative max-w-sm flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-foreground/70" />
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             data-gamepad-search
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search games..."
-            className="bg-accent/50 pl-8 backdrop-blur-sm"
+            className="bg-accent/50 pl-8"
           />
         </div>
         <div className="ml-auto flex items-center gap-2">

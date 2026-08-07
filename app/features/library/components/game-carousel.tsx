@@ -30,6 +30,8 @@ export function GameCarousel({
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [activeId, setActiveId] = useState(games[0]?.id)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
 
   const activeGame = games.find((g) => g.id === activeId) ?? games[0]
 
@@ -43,6 +45,29 @@ export function GameCarousel({
     }
   }, [games, activeId])
 
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+
+    function updateScrollState() {
+      if (!el) return
+      setCanScrollLeft(el.scrollLeft > 0)
+      setCanScrollRight(
+        el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+      )
+    }
+
+    updateScrollState()
+    el.addEventListener("scroll", updateScrollState)
+    const observer = new ResizeObserver(updateScrollState)
+    observer.observe(el)
+
+    return () => {
+      el.removeEventListener("scroll", updateScrollState)
+      observer.disconnect()
+    }
+  }, [games])
+
   function scrollBy(amount: number) {
     trackRef.current?.scrollBy({ left: amount, behavior: "smooth" })
   }
@@ -50,13 +75,15 @@ export function GameCarousel({
   return (
     <div className="flex flex-col gap-3">
       <div className="group/carousel relative">
-        <button
-          aria-label="Scroll left"
-          onClick={() => scrollBy(-600)}
-          className="absolute top-1/2 left-1 z-20 -translate-y-1/2 rounded-md bg-accent/70 p-2 opacity-0 shadow-lg backdrop-blur-md transition-opacity group-hover/carousel:opacity-100"
-        >
-          <ChevronLeft className="size-4" />
-        </button>
+        {canScrollLeft ? (
+          <button
+            aria-label="Scroll left"
+            onClick={() => scrollBy(-600)}
+            className="absolute top-1/2 left-1 z-20 -translate-y-1/2 rounded-md bg-accent/70 p-2 opacity-0 shadow-lg backdrop-blur-md transition-opacity group-hover/carousel:opacity-100"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+        ) : null}
 
         <FocusZone id="grid">
           <div
@@ -78,13 +105,15 @@ export function GameCarousel({
           </div>
         </FocusZone>
 
-        <button
-          aria-label="Scroll right"
-          onClick={() => scrollBy(600)}
-          className="absolute top-1/2 right-1 z-20 -translate-y-1/2 rounded-md bg-accent/70 p-2 opacity-0 shadow-lg backdrop-blur-md transition-opacity group-hover/carousel:opacity-100"
-        >
-          <ChevronRight className="size-4" />
-        </button>
+        {canScrollRight ? (
+          <button
+            aria-label="Scroll right"
+            onClick={() => scrollBy(600)}
+            className="absolute top-1/2 right-1 z-20 -translate-y-1/2 rounded-md bg-accent/70 p-2 opacity-0 shadow-lg backdrop-blur-md transition-opacity group-hover/carousel:opacity-100"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        ) : null}
       </div>
 
       {activeGame ? (
