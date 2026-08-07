@@ -7,10 +7,12 @@ import {
   Heart,
   Maximize,
   Minimize,
+  Power,
   Settings,
 } from "lucide-react"
 
 import { SettingsDialog } from "~/features/settings/components/settings-dialog"
+import { PowerDialog } from "./power-dialog"
 import { FocusZone } from "~/lib/gamepad/focus-zone"
 import { useGamepadBumpers } from "~/lib/gamepad/gamepad-navigation-provider"
 import { useFullscreen } from "~/lib/hooks/use-fullscreen"
@@ -109,6 +111,7 @@ export function LibrarySidebar({ filter, onFilterChange, games }: Props) {
       : []),
   ]
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [powerOpen, setPowerOpen] = useState(false)
   const { isFullscreen, toggleFullscreen } = useFullscreen()
   const [collapsed, setCollapsed] = useState(
     () =>
@@ -219,7 +222,21 @@ export function LibrarySidebar({ filter, onFilterChange, games }: Props) {
           {collapsed ? null : "Settings"}
         </button>
 
+        <button
+          type="button"
+          onClick={() => setPowerOpen(true)}
+          title={collapsed ? "Power" : undefined}
+          className={cn(
+            "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-muted-foreground hover:bg-muted hover:text-foreground",
+            collapsed && "justify-center px-0"
+          )}
+        >
+          <Power className="size-5 shrink-0" />
+          {collapsed ? null : "Power"}
+        </button>
+
         <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+        <PowerDialog open={powerOpen} onOpenChange={setPowerOpen} />
       </FocusZone>
     </aside>
   )

@@ -7,6 +7,7 @@ mod services;
 
 use commands::launcher::{focus_main_window, focus_running_game, launch_game, stop_game};
 use commands::misc::greet;
+use commands::power::{exit_app, system_restart, system_shutdown, system_sleep};
 use commands::scan::{scan_epic, scan_steam};
 use commands::steam::{get_steam_owned_playtimes, resolve_steam_vanity_url};
 use commands::steamgriddb::{search_steamgriddb_covers, steamgriddb_cover_for_steam_appid};
@@ -43,7 +44,11 @@ pub fn run() {
             launch_game,
             stop_game,
             focus_running_game,
-            focus_main_window
+            focus_main_window,
+            system_sleep,
+            system_shutdown,
+            system_restart,
+            exit_app
         ])
         .on_page_load(|webview, payload| {
             if webview.label() == "main" && matches!(payload.event(), PageLoadEvent::Finished) {
