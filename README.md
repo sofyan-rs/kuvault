@@ -10,6 +10,9 @@ Desktop game library manager for Windows. Unifies Steam, Epic, and manually-adde
 ![SS4](ss/ss-4.png)
 ![SS5](ss/ss-5.png)
 ![SS6](ss/ss-6.png)
+![SS7](ss/ss-7.png)
+![SS8](ss/ss-8.png)
+![SS9](ss/ss-9.png)
 
 ## Features
 
