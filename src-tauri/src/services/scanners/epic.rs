@@ -13,8 +13,12 @@ struct EpicManifest {
     install_location: String,
     #[serde(rename = "LaunchExecutable")]
     launch_executable: String,
+    #[serde(rename = "CatalogNamespace")]
+    catalog_namespace: String,
     #[serde(rename = "CatalogItemId")]
     catalog_item_id: String,
+    #[serde(rename = "AppName")]
+    app_name: String,
 }
 
 fn manifests_dir() -> Option<PathBuf> {
@@ -59,12 +63,20 @@ pub fn scan() -> Vec<ScannedGame> {
             .to_string_lossy()
             .to_string();
 
+        // Epic's protocol launch URL needs the full `namespace:catalogItemId:appName` triple, not
+        // the catalog item id alone — the id alone opens the launcher without actually starting
+        // the game.
+        let source_id = format!(
+            "{}:{}:{}",
+            manifest.catalog_namespace, manifest.catalog_item_id, manifest.app_name
+        );
+
         games.push(ScannedGame {
             name: manifest.display_name,
             platform: "epic".to_string(),
             executable_path,
             install_dir: manifest.install_location,
-            source_id: manifest.catalog_item_id,
+            source_id,
         });
     }
 

@@ -176,14 +176,22 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
         </div>
       ) : null}
 
-      {platform === "emulator" ? (
+      {!isScanned ? (
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="launch-args">ROM path (launch argument)</Label>
+          <Label htmlFor="launch-args">
+            {platform === "emulator"
+              ? "ROM path (launch argument)"
+              : "Custom launch arguments"}
+          </Label>
           <Input
             id="launch-args"
             value={launchArgs}
             onChange={(e) => setLaunchArgs(e.target.value)}
-            placeholder="C:\ROMs\game.gba"
+            placeholder={
+              platform === "emulator"
+                ? "C:\\ROMs\\game.gba"
+                : '--launch "E:\\Games\\...\\P3R.exe"'
+            }
           />
         </div>
       ) : null}
