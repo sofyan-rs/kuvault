@@ -20,7 +20,8 @@
         "minWidth": 1024,
         "minHeight": 640,
         "center": true,
-        "visible": false
+        "visible": false,
+        "additionalBrowserArgs": "--disable-features=msSmartScreenProtection,ElasticOverscroll --disk-cache-size=52428800"
       }
     ],
     "security": {

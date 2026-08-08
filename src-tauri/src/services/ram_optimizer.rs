@@ -69,6 +69,81 @@ pub fn optimize_before_launch(skip_pids: Vec<u32>) {
     let _ = skip_pids;
 }
 
+/// Best-effort working-set trim of KuVault's own `msedgewebview2.exe` process tree, run while the
+/// main window is hidden/minimized. Throttled since it's called from window events. Only ever
+/// touches processes named `msedgewebview2.exe` descending from our own pid — never a launched
+/// game, even one spawned as a direct child of us (e.g. non-Steam launches).
+#[cfg(target_os = "windows")]
+pub fn trim_own_webview() {
+    use std::sync::Mutex;
+    use std::time::Instant;
+
+    use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
+
+    const TRIM_INTERVAL: std::time::Duration = std::time::Duration::from_secs(30);
+    static LAST_TRIM: Mutex<Option<Instant>> = Mutex::new(None);
+
+    {
+        let mut last = LAST_TRIM.lock().unwrap();
+        if last.is_some_and(|t| t.elapsed() < TRIM_INTERVAL) {
+            return;
+        }
+        *last = Some(Instant::now());
+    }
+
+    let started_at = Instant::now();
+
+    let mut system = System::new();
+    system.refresh_processes_specifics(ProcessesToUpdate::All, true, ProcessRefreshKind::new());
+
+    let our_pid = Pid::from_u32(std::process::id());
+
+    let descends_from_us = |mut pid: Pid| -> bool {
+        while let Some(process) = system.process(pid) {
+            let Some(parent) = process.parent() else {
+                return false;
+            };
+            if parent == our_pid {
+                return true;
+            }
+            pid = parent;
+        }
+        false
+    };
+
+    let mut attempted = 0u32;
+    let mut trimmed = 0u32;
+
+    for (pid, process) in system.processes() {
+        let pid = *pid;
+        if !process
+            .name()
+            .to_str()
+            .is_some_and(|name| name.eq_ignore_ascii_case("msedgewebview2.exe"))
+        {
+            continue;
+        }
+        if !descends_from_us(pid) {
+            continue;
+        }
+
+        attempted += 1;
+        if windows_trim::trim_process(pid.as_u32()) {
+            trimmed += 1;
+        }
+    }
+
+    windows_trim::trim_self();
+
+    log::info!(
+        "ram trim (idle): trimmed {trimmed}/{attempted} webview processes in {}ms",
+        started_at.elapsed().as_millis()
+    );
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn trim_own_webview() {}
+
 #[cfg(target_os = "windows")]
 mod windows_trim {
     use windows_sys::Win32::Foundation::CloseHandle;
