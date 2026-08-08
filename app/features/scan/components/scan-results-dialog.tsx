@@ -122,30 +122,45 @@ export function ScanResultsDialog({
       const coverApiKey = await getSetting(STEAMGRIDDB_KEY_SETTING)
       const playtimes = await fetchSteamPlaytimes()
 
+      let imported = 0
+      let failed = 0
+
       for (const game of newGames.filter((g) => selected.has(g.source_id))) {
-        const coverUrl = coverApiKey ? await fetchCoverUrl(coverApiKey, game) : undefined
+        try {
+          const coverUrl = coverApiKey ? await fetchCoverUrl(coverApiKey, game) : undefined
 
-        const id = await addGame({
-          name: game.name,
-          platform: game.platform,
-          executable_path: game.executable_path,
-          install_dir: game.install_dir,
-          source_id: game.source_id,
-          cover_url: coverUrl,
-        })
+          const id = await addGame({
+            name: game.name,
+            platform: game.platform,
+            executable_path: game.executable_path,
+            install_dir: game.install_dir,
+            source_id: game.source_id,
+            cover_url: coverUrl,
+          })
 
-        const playtimeSeconds = playtimes.get(game.source_id)
-        if (id && playtimeSeconds) {
-          await setPlaytime(id, playtimeSeconds)
+          const playtimeSeconds = playtimes.get(game.source_id)
+          if (id && playtimeSeconds) {
+            await setPlaytime(id, playtimeSeconds)
+          }
+          imported++
+        } catch (err) {
+          failed++
+          console.error(`Failed to import ${game.name}:`, err)
         }
       }
+
       const platformLabel = platform === "steam" ? "Steam" : "Epic"
-      toast.success(`Imported ${selected.size} game${selected.size === 1 ? "" : "s"} from ${platformLabel}`)
+      if (imported > 0) {
+        toast.success(`Imported ${imported} game${imported === 1 ? "" : "s"} from ${platformLabel}`)
+      }
+      if (failed > 0) {
+        toast.error(`Failed to import ${failed} game${failed === 1 ? "" : "s"} — already in library or a db error occurred`)
+      }
       onImported()
       onOpenChange(false)
       setSelected(new Set())
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Import failed")
+      toast.error(err instanceof Error ? err.message : String(err))
     } finally {
       setImporting(false)
     }

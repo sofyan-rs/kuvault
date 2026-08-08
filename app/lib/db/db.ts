@@ -8,7 +8,10 @@ let dbPromise: Promise<Database> | null = null
 
 function getDb() {
   if (!dbPromise) {
-    dbPromise = Database.load(DB_URL)
+    dbPromise = Database.load(DB_URL).then(async (db) => {
+      await db.execute("PRAGMA journal_mode=WAL")
+      return db
+    })
   }
   return dbPromise
 }
