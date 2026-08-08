@@ -12,9 +12,22 @@ use commands::launcher::{focus_main_window, focus_running_game, launch_game, sto
 use commands::misc::greet;
 use commands::power::{exit_app, system_restart, system_shutdown, system_sleep};
 use commands::scan::{scan_epic, scan_steam};
+use commands::settings::{get_run_as_admin, is_running_elevated, set_run_as_admin};
 use commands::steam::{get_steam_owned_playtimes, resolve_steam_vanity_url};
 use commands::steamgriddb::{search_steamgriddb_covers, steamgriddb_cover_for_steam_appid};
 use plugins::external_navigation::external_navigation_plugin;
+
+/// If the user has opted into running KuVault as administrator but this process isn't elevated
+/// (e.g. launched via autostart, which always runs de-elevated), relaunch elevated and exit this
+/// instance. Must run before the Tauri app starts so there's no unelevated window flash. If the
+/// UAC prompt is declined, falls through and continues unelevated rather than leaving no app open.
+pub fn maybe_relaunch_elevated() {
+    if services::elevation::get_pref() && !services::elevation::is_elevated() {
+        if let Err(e) = services::elevation::relaunch_elevated_and_exit() {
+            log::warn!("failed to relaunch elevated, continuing unelevated: {e}");
+        }
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -102,7 +115,10 @@ pub fn run() {
             system_sleep,
             system_shutdown,
             system_restart,
-            exit_app
+            exit_app,
+            get_run_as_admin,
+            set_run_as_admin,
+            is_running_elevated
         ])
         .on_page_load(|webview, payload| {
             if webview.label() == "main" && matches!(payload.event(), PageLoadEvent::Finished) {

@@ -37,6 +37,15 @@ fn clear_running_pid(id: i64) {
     }
 }
 
+fn tracked_pids() -> Vec<u32> {
+    RUNNING_PIDS
+        .lock()
+        .unwrap()
+        .as_ref()
+        .map(|map| map.values().copied().collect())
+        .unwrap_or_default()
+}
+
 /// True if `exe_path` lives anywhere under `install_dir`.
 fn is_under_install_dir(exe_path: &Path, install_dir: &Path) -> bool {
     let exe = exe_path.canonicalize().unwrap_or_else(|_| exe_path.to_path_buf());
@@ -69,8 +78,15 @@ pub fn launch(
     launch_args: Option<String>,
     install_dir: Option<String>,
     run_as_admin: bool,
+    optimize_ram: bool,
     source_id: Option<String>,
 ) -> Result<(), String> {
+    if optimize_ram {
+        // Best-effort and detached: never delay or fail a launch on a memory trim.
+        let skip_pids = tracked_pids();
+        std::thread::spawn(move || crate::services::ram_optimizer::optimize_before_launch(skip_pids));
+    }
+
     if run_as_admin && platform != "steam" {
         #[cfg(target_os = "windows")]
         {
@@ -437,12 +453,7 @@ pub fn focus_running_window(id: i64) -> Result<(), String> {
 pub fn minimize_running_windows() {
     #[cfg(target_os = "windows")]
     {
-        let tracked_pids: Vec<u32> = RUNNING_PIDS
-            .lock()
-            .unwrap()
-            .as_ref()
-            .map(|map| map.values().copied().collect())
-            .unwrap_or_default();
+        let tracked_pids = tracked_pids();
 
         let mut system = System::new();
         system.refresh_processes_specifics(

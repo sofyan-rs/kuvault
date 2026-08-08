@@ -1,6 +1,8 @@
 pub mod db;
+pub mod elevation;
 pub mod http;
 pub mod launcher;
+pub mod ram_optimizer;
 pub mod scanners;
 pub mod steam_api;
 pub mod steamgriddb;

@@ -11,6 +11,7 @@ pub fn launch_game(
     launch_args: Option<String>,
     install_dir: Option<String>,
     run_as_admin: bool,
+    optimize_ram: bool,
     source_id: Option<String>,
 ) -> Result<(), String> {
     launcher::launch(
@@ -21,6 +22,7 @@ pub fn launch_game(
         launch_args,
         install_dir,
         run_as_admin,
+        optimize_ram,
         source_id,
     )
 }

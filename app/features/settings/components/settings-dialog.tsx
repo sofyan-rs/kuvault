@@ -16,6 +16,8 @@ import { getSetting, setSetting } from "~/lib/db/db"
 import { AutostartToggle } from "./autostart-toggle"
 import { GamepadHomeToggle } from "./gamepad-home-toggle"
 import { LaunchFullscreenToggle } from "./launch-fullscreen-toggle"
+import { RamOptimizeToggle } from "./ram-optimize-toggle"
+import { RunAsAdminToggle } from "./run-as-admin-toggle"
 import {
   STEAM_API_KEY_SETTING,
   STEAM_ID_SETTING,
@@ -92,6 +94,8 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
           <AutostartToggle />
           <LaunchFullscreenToggle />
           <GamepadHomeToggle />
+          <RamOptimizeToggle />
+          <RunAsAdminToggle />
           <SteamGridDbKeyForm
             value={gridDbKey}
             onChange={setGridDbKey}

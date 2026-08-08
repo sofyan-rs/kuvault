@@ -3,6 +3,7 @@ import { toast } from "sonner"
 import { getSetting, setPlaytime } from "~/lib/db/db"
 import type { Game } from "~/lib/db/db-types"
 import { STEAM_API_KEY_SETTING, STEAM_ID_SETTING } from "~/features/settings/components/steam-api-form"
+import { getRamOptimize } from "~/lib/settings/ram-optimize"
 import { trackedInvoke } from "~/lib/tauri/tauri"
 import { useIsGameLaunching, useLaunchActions } from "~/lib/tauri/running-games"
 
@@ -55,6 +56,7 @@ export function useLaunchGame(game: Game) {
         launchArgs: game.launch_args,
         installDir: game.install_dir,
         runAsAdmin: game.run_as_admin === 1,
+        optimizeRam: getRamOptimize(),
         sourceId: game.source_id,
       })
     } catch (err) {
