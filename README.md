@@ -26,6 +26,9 @@ Desktop game library manager for Windows. Unifies Steam, Epic, and manually-adde
 - Full gamepad navigation: D-pad/stick movement, A/B/X/Y actions, virtual on-screen keyboard, LB/RB section cycling.
 - Console-style Home button: jump back to KuVault while a game is running, then Continue or Stop it from the library — toggleable, active by default.
 - Per-game "Run as administrator" launch option, for games that require elevation.
+- RAM optimizer before launch — trims memory before starting a game, and trims KuVault's own WebView2 process tree while hidden or minimized.
+- Warns before launching a game while another is already running or launching.
+- Automatic OTA updates via `tauri-plugin-updater` — checks for new releases and installs in the background.
 
 ## Tech stack
 
