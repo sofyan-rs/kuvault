@@ -20,6 +20,7 @@ import { Textarea } from "~/components/ui/textarea"
 import { addGame, updateGame } from "~/lib/db/db"
 import type { Game, Platform } from "~/lib/db/db-types"
 
+import { CategoryInput } from "./category-input"
 import { CoverPicker } from "./cover-picker"
 
 const PLATFORM_LABELS: Record<"manual" | "emulator", string> = {
@@ -67,7 +68,10 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
         setName(fileName.replace(/\.exe$/i, ""))
       }
       if (!installDir) {
-        const dir = path.slice(0, Math.max(path.lastIndexOf("\\"), path.lastIndexOf("/")))
+        const dir = path.slice(
+          0,
+          Math.max(path.lastIndexOf("\\"), path.lastIndexOf("/"))
+        )
         if (dir) setInstallDir(dir)
       }
     }
@@ -163,6 +167,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          placeholder="Game Title"
           required
         />
       </div>
@@ -222,8 +227,9 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Used to detect the game as running when launched through a mod loader or other
-          wrapper — set this to the folder containing the actual game exe.
+          Used to detect the game as running when launched through a mod loader
+          or other wrapper — set this to the folder containing the actual game
+          exe.
         </p>
       </div>
 
@@ -238,14 +244,9 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="genres">Categories</Label>
-        <Input
-          id="genres"
-          value={genres}
-          onChange={(e) => setGenres(e.target.value)}
-          placeholder="Open-world, Emulation, Racing, etc."
-        />
+        <CategoryInput value={genres} onChange={setGenres} />
         <p className="text-xs text-muted-foreground">
-          Comma-separated, any custom tags you like.
+          Pick existing tags or type to create new ones.
         </p>
       </div>
 
@@ -256,6 +257,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
+          placeholder="Game description"
         />
       </div>
 
