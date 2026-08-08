@@ -145,50 +145,6 @@ pub fn trim_own_webview() {
 #[cfg(not(target_os = "windows"))]
 pub fn trim_own_webview() {}
 
-/// Clears the throttled/idle state applied by [`trim_own_webview`] on our own `msedgewebview2.exe`
-/// process tree. Called when the main window is restored so the webview isn't left throttled while
-/// the user is actively using the app.
-#[cfg(target_os = "windows")]
-pub fn restore_own_webview() {
-    use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
-
-    let mut system = System::new();
-    system.refresh_processes_specifics(ProcessesToUpdate::All, true, ProcessRefreshKind::new());
-
-    let our_pid = Pid::from_u32(std::process::id());
-
-    let descends_from_us = |mut pid: Pid| -> bool {
-        while let Some(process) = system.process(pid) {
-            let Some(parent) = process.parent() else {
-                return false;
-            };
-            if parent == our_pid {
-                return true;
-            }
-            pid = parent;
-        }
-        false
-    };
-
-    for (pid, process) in system.processes() {
-        let pid = *pid;
-        if !process
-            .name()
-            .to_str()
-            .is_some_and(|name| name.eq_ignore_ascii_case("msedgewebview2.exe"))
-        {
-            continue;
-        }
-        if !descends_from_us(pid) {
-            continue;
-        }
-        windows_trim::set_efficiency_mode(pid.as_u32(), false);
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-pub fn restore_own_webview() {}
-
 #[cfg(target_os = "windows")]
 mod windows_trim {
     use windows_sys::Win32::Foundation::CloseHandle;

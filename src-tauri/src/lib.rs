@@ -74,7 +74,6 @@ pub fn run() {
                             let _ = window.show();
                             let _ = window.unminimize();
                             let _ = window.set_focus();
-                            std::thread::spawn(services::ram_optimizer::restore_own_webview);
                         }
                     }
                     "exit" => app.exit(0),
@@ -92,11 +91,12 @@ pub fn run() {
                             let _ = window.show();
                             let _ = window.unminimize();
                             let _ = window.set_focus();
-                            std::thread::spawn(services::ram_optimizer::restore_own_webview);
                         }
                     }
                 })
                 .build(app)?;
+
+            std::thread::spawn(services::ram_optimizer::trim_own_webview);
 
             Ok(())
         })
@@ -111,9 +111,7 @@ pub fn run() {
                     std::thread::spawn(services::ram_optimizer::trim_own_webview);
                 }
                 WindowEvent::Resized(_) => {
-                    if window.is_minimized().unwrap_or(false) {
-                        std::thread::spawn(services::ram_optimizer::trim_own_webview);
-                    }
+                    std::thread::spawn(services::ram_optimizer::trim_own_webview);
                 }
                 _ => {}
             }

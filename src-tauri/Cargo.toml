@@ -1,6 +1,6 @@
 [package]
 name = "kuvault"
-version = "1.0.2"
+version = "1.0.3"
 description = "A Tauri App"
 authors = ["Sofyan R."]
 license = "MIT"

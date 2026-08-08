@@ -66,6 +66,5 @@ pub fn focus_main_window(app: tauri::AppHandle) -> Result<(), String> {
     let _ = window.unminimize();
     window.show().map_err(|e| e.to_string())?;
     window.set_focus().map_err(|e| e.to_string())?;
-    std::thread::spawn(crate::services::ram_optimizer::restore_own_webview);
     Ok(())
 }
