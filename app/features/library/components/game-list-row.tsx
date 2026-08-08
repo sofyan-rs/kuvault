@@ -18,6 +18,7 @@ import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { TableCell, TableRow } from "~/components/ui/table"
 import { EditGameDialog } from "~/features/add-game/components/edit-game-dialog"
+import { LaunchConflictDialog } from "~/features/game-detail/components/launch-conflict-dialog"
 import { useLaunchGame } from "~/features/game-detail/hooks/use-launch-game"
 import { deleteGame, toggleFavorite } from "~/lib/db/db"
 import { useIsGameRunning } from "~/lib/tauri/running-games"
@@ -40,7 +41,7 @@ export function GameListRow({
   onUpdateGame: (id: number, patch: Partial<Game>) => void
 }) {
   const isRunning = useIsGameRunning(game.id)
-  const { launch, launching, stop, continueGame } = useLaunchGame(game)
+  const { launch, launching, stop, continueGame, launchConflict } = useLaunchGame(game)
   const [editOpen, setEditOpen] = useState(false)
 
   async function handleFavorite() {
@@ -174,6 +175,8 @@ export function GameListRow({
           onOpenChange={setEditOpen}
           onSaved={onChange}
         />
+
+        <LaunchConflictDialog {...launchConflict} />
       </TableCell>
     </TableRow>
   )

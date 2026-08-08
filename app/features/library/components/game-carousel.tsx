@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 
 import { Button } from "~/components/ui/button"
+import { LaunchConflictDialog } from "~/features/game-detail/components/launch-conflict-dialog"
 import { useLaunchGame } from "~/features/game-detail/hooks/use-launch-game"
 import { toggleFavorite } from "~/lib/db/db"
 import { FocusZone } from "~/lib/gamepad/focus-zone"
@@ -138,7 +139,7 @@ function GameCarouselActions({
   onUpdateGame: (id: number, patch: Partial<Game>) => void
 }) {
   const isRunning = useIsGameRunning(game.id)
-  const { launch, launching, stop, continueGame } = useLaunchGame(game)
+  const { launch, launching, stop, continueGame, launchConflict } = useLaunchGame(game)
 
   async function handleFavorite() {
     const next = game.is_favorite === 0
@@ -197,6 +198,8 @@ function GameCarouselActions({
           }
         />
       </Button>
+
+      <LaunchConflictDialog {...launchConflict} />
     </FocusZone>
   )
 }

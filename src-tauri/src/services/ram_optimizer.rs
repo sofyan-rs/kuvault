@@ -131,6 +131,7 @@ pub fn trim_own_webview() {
         if windows_trim::trim_process(pid.as_u32()) {
             trimmed += 1;
         }
+        windows_trim::set_efficiency_mode(pid.as_u32(), true);
     }
 
     windows_trim::trim_self();
@@ -144,13 +145,60 @@ pub fn trim_own_webview() {
 #[cfg(not(target_os = "windows"))]
 pub fn trim_own_webview() {}
 
+/// Clears the throttled/idle state applied by [`trim_own_webview`] on our own `msedgewebview2.exe`
+/// process tree. Called when the main window is restored so the webview isn't left throttled while
+/// the user is actively using the app.
+#[cfg(target_os = "windows")]
+pub fn restore_own_webview() {
+    use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
+
+    let mut system = System::new();
+    system.refresh_processes_specifics(ProcessesToUpdate::All, true, ProcessRefreshKind::new());
+
+    let our_pid = Pid::from_u32(std::process::id());
+
+    let descends_from_us = |mut pid: Pid| -> bool {
+        while let Some(process) = system.process(pid) {
+            let Some(parent) = process.parent() else {
+                return false;
+            };
+            if parent == our_pid {
+                return true;
+            }
+            pid = parent;
+        }
+        false
+    };
+
+    for (pid, process) in system.processes() {
+        let pid = *pid;
+        if !process
+            .name()
+            .to_str()
+            .is_some_and(|name| name.eq_ignore_ascii_case("msedgewebview2.exe"))
+        {
+            continue;
+        }
+        if !descends_from_us(pid) {
+            continue;
+        }
+        windows_trim::set_efficiency_mode(pid.as_u32(), false);
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn restore_own_webview() {}
+
 #[cfg(target_os = "windows")]
 mod windows_trim {
     use windows_sys::Win32::Foundation::CloseHandle;
     use windows_sys::Win32::System::ProcessStatus::EmptyWorkingSet;
     use windows_sys::Win32::System::Threading::{
-        GetCurrentProcess, OpenProcess, PROCESS_QUERY_INFORMATION, PROCESS_QUERY_LIMITED_INFORMATION,
-        PROCESS_SET_QUOTA,
+        GetCurrentProcess, OpenProcess, ProcessPowerThrottling, SetPriorityClass,
+        SetProcessInformation, IDLE_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS,
+        PROCESS_POWER_THROTTLING_CURRENT_VERSION, PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+        PROCESS_POWER_THROTTLING_STATE, PROCESS_QUERY_INFORMATION,
+        PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SET_INFORMATION, PROCESS_SET_QUOTA,
     };
 
     /// Returns false on any failure (access denied, process exited) — callers just count and
@@ -175,5 +223,53 @@ mod windows_trim {
         unsafe {
             EmptyWorkingSet(GetCurrentProcess());
         }
+    }
+
+    /// Toggles EcoQoS power throttling + background priority on `pid` — the same "Efficiency
+    /// Mode" Task Manager shows with a green leaf icon. `enabled=false` restores normal priority
+    /// and clears throttling. Best-effort: returns false on any failure, callers just count.
+    pub fn set_efficiency_mode(pid: u32, enabled: bool) -> bool {
+        let mut handle = unsafe {
+            OpenProcess(
+                PROCESS_SET_INFORMATION | PROCESS_QUERY_LIMITED_INFORMATION,
+                0,
+                pid,
+            )
+        };
+        if handle.is_null() {
+            handle = unsafe {
+                OpenProcess(PROCESS_SET_INFORMATION | PROCESS_QUERY_INFORMATION, 0, pid)
+            };
+        }
+        if handle.is_null() {
+            return false;
+        }
+
+        let priority_ok = unsafe {
+            SetPriorityClass(
+                handle,
+                if enabled { IDLE_PRIORITY_CLASS } else { NORMAL_PRIORITY_CLASS },
+            )
+        } != 0;
+
+        let mut state = PROCESS_POWER_THROTTLING_STATE {
+            Version: PROCESS_POWER_THROTTLING_CURRENT_VERSION,
+            ControlMask: PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+            StateMask: if enabled { PROCESS_POWER_THROTTLING_EXECUTION_SPEED } else { 0 },
+        };
+        let throttling_ok = unsafe {
+            SetProcessInformation(
+                handle,
+                ProcessPowerThrottling,
+                &mut state as *mut _ as *mut core::ffi::c_void,
+                std::mem::size_of::<PROCESS_POWER_THROTTLING_STATE>() as u32,
+            )
+        } != 0;
+
+        unsafe {
+            CloseHandle(handle);
+        }
+
+        priority_ok && throttling_ok
     }
 }
