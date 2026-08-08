@@ -295,6 +295,60 @@ pub fn launch(
     }
 
     let mut child = command.spawn().map_err(|e| e.to_string())?;
+
+    // If an install dir is set, the launched exe may be a mod loader/bootstrapper that spawns
+    // the real game as a child and exits quickly — waiting on it directly would report the game
+    // as stopped while it's still running. Scan install_dir for the actual game process instead,
+    // same as the Steam/Epic paths do.
+    let scan_dir = install_dir.filter(|d| !d.is_empty());
+
+    if let Some(scan_dir) = scan_dir {
+        std::thread::spawn(move || {
+            let install_dir = Path::new(&scan_dir);
+            let mut system = System::new();
+            let detect_started_at = Instant::now();
+
+            let pid = loop {
+                if let Some(pid) = find_process_under(&mut system, install_dir) {
+                    break pid;
+                }
+                if let Ok(Some(_)) = child.try_wait() {
+                    // The launched process exited before spawning anything under install_dir.
+                    return;
+                }
+                if detect_started_at.elapsed() > STEAM_DETECT_TIMEOUT {
+                    return;
+                }
+                std::thread::sleep(STEAM_POLL_INTERVAL);
+            };
+
+            set_running_pid(id, pid.as_u32());
+            let _ = app.emit("game-launch-started", LaunchStarted { id });
+            let started_at = Instant::now();
+
+            while system.refresh_processes_specifics(
+                ProcessesToUpdate::Some(&[pid]),
+                true,
+                ProcessRefreshKind::new(),
+            ) > 0
+            {
+                std::thread::sleep(STEAM_POLL_INTERVAL);
+            }
+
+            clear_running_pid(id);
+            let playtime_seconds = started_at.elapsed().as_secs();
+            let _ = app.emit(
+                "game-launch-finished",
+                LaunchFinished {
+                    id,
+                    playtime_seconds,
+                },
+            );
+        });
+
+        return Ok(());
+    }
+
     set_running_pid(id, child.id());
     let _ = app.emit("game-launch-started", LaunchStarted { id });
 
@@ -477,13 +531,26 @@ mod windows_focus {
     use windows_sys::Win32::Foundation::{BOOL, HWND, LPARAM, TRUE};
     use windows_sys::Win32::System::Threading::GetCurrentProcessId;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        EnumWindows, GetWindowThreadProcessId, IsWindowVisible, SetForegroundWindow, ShowWindow,
-        SW_MINIMIZE, SW_RESTORE,
+        EnumWindows, GetClassNameW, GetWindowThreadProcessId, IsWindowVisible,
+        SetForegroundWindow, ShowWindow, SW_MINIMIZE, SW_RESTORE,
     };
 
     struct SearchState<'a> {
         target_pids: &'a [u32],
         found: Option<HWND>,
+        // Console windows (e.g. a mod loader's debug/log terminal riding on the game's pid)
+        // shouldn't steal focus over the actual game window — remember one as a last resort
+        // in case the target process turns out to have no other visible window at all.
+        console_fallback: Option<HWND>,
+    }
+
+    fn is_console_window(hwnd: HWND) -> bool {
+        let mut buf = [0u16; 256];
+        let len = unsafe { GetClassNameW(hwnd, buf.as_mut_ptr(), buf.len() as i32) };
+        if len <= 0 {
+            return false;
+        }
+        String::from_utf16_lossy(&buf[..len as usize]) == "ConsoleWindowClass"
     }
 
     unsafe extern "system" fn enum_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
@@ -493,6 +560,10 @@ mod windows_focus {
         GetWindowThreadProcessId(hwnd, &mut process_id);
 
         if state.target_pids.contains(&process_id) && IsWindowVisible(hwnd) != 0 {
+            if is_console_window(hwnd) {
+                state.console_fallback = Some(hwnd);
+                return TRUE;
+            }
             state.found = Some(hwnd);
             return 0; // stop enumeration
         }
@@ -504,13 +575,14 @@ mod windows_focus {
         let mut state = SearchState {
             target_pids: pids,
             found: None,
+            console_fallback: None,
         };
 
         unsafe {
             EnumWindows(Some(enum_proc), &mut state as *mut SearchState as LPARAM);
         }
 
-        state.found
+        state.found.or(state.console_fallback)
     }
 
     pub fn focus_window_for_pids(pids: &[u32]) -> Result<(), String> {

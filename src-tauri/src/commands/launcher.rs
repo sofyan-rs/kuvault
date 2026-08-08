@@ -38,6 +38,25 @@ pub fn focus_running_game(id: i64) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn get_install_size(install_dir: String) -> Result<u64, String> {
+    fn dir_size(path: &std::path::Path) -> std::io::Result<u64> {
+        let mut total = 0u64;
+        for entry in std::fs::read_dir(path)? {
+            let entry = entry?;
+            let file_type = entry.file_type()?;
+            if file_type.is_dir() {
+                total += dir_size(&entry.path())?;
+            } else {
+                total += entry.metadata()?.len();
+            }
+        }
+        Ok(total)
+    }
+
+    dir_size(std::path::Path::new(&install_dir)).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn focus_main_window(app: tauri::AppHandle) -> Result<(), String> {
     launcher::minimize_running_windows();
 
@@ -47,5 +66,6 @@ pub fn focus_main_window(app: tauri::AppHandle) -> Result<(), String> {
     let _ = window.unminimize();
     window.show().map_err(|e| e.to_string())?;
     window.set_focus().map_err(|e| e.to_string())?;
+    std::thread::spawn(crate::services::ram_optimizer::restore_own_webview);
     Ok(())
 }

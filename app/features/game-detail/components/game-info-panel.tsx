@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Activity,
   CalendarClock,
   Clock3,
+  HardDrive,
   Heart,
   Pencil,
   Play,
@@ -29,9 +30,11 @@ import { Button } from "~/components/ui/button"
 import { PlatformIcon } from "~/features/library/components/platform-icon"
 import { deleteGame, toggleFavorite } from "~/lib/db/db"
 import type { Game } from "~/lib/db/db-types"
+import { trackedInvoke } from "~/lib/tauri/tauri"
 import { useIsGameRunning } from "~/lib/tauri/running-games"
 import { cn } from "~/lib/utils"
 
+import { LaunchConflictDialog } from "./launch-conflict-dialog"
 import { useLaunchGame } from "../hooks/use-launch-game"
 
 function formatPlaytime(seconds: number) {
@@ -42,6 +45,18 @@ function formatPlaytime(seconds: number) {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString()
+}
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  const units = ["KB", "MB", "GB", "TB"]
+  let value = bytes / 1024
+  let unit = 0
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024
+    unit++
+  }
+  return `${value.toFixed(1)} ${units[unit]}`
 }
 
 function StatTile({
@@ -82,9 +97,26 @@ interface Props {
 }
 
 export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
-  const { launch, launching, stop, continueGame } = useLaunchGame(game)
+  const { launch, launching, stop, continueGame, launchConflict } = useLaunchGame(game)
   const isRunning = useIsGameRunning(game.id)
   const [isFavorite, setIsFavorite] = useState(!!game.is_favorite)
+  const [installSize, setInstallSize] = useState<number | null>(null)
+
+  useEffect(() => {
+    setInstallSize(null)
+    if (!game.install_dir) return
+    let cancelled = false
+    trackedInvoke<number>("get_install_size", { installDir: game.install_dir })
+      .then((size) => {
+        if (!cancelled) setInstallSize(size)
+      })
+      .catch(() => {
+        // Folder may no longer exist or be unreadable — just skip the size tile.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [game.install_dir])
 
   async function handleFavorite() {
     const next = !isFavorite
@@ -266,17 +298,18 @@ export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            <LaunchConflictDialog {...launchConflict} />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatTile icon={Clock3} label="Playtime">
-          {formatPlaytime(game.playtime_seconds)}
-        </StatTile>
-        <StatTile icon={CalendarClock} label="Last played">
-          {game.last_played_at ? formatDate(game.last_played_at) : "Never"}
-        </StatTile>
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-3 sm:grid-cols-3",
+          installSize !== null && "lg:grid-cols-4",
+        )}
+      >
         <StatTile
           icon={Activity}
           label="Status"
@@ -291,6 +324,17 @@ export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
             "Idle"
           )}
         </StatTile>
+        <StatTile icon={Clock3} label="Playtime">
+          {formatPlaytime(game.playtime_seconds)}
+        </StatTile>
+        <StatTile icon={CalendarClock} label="Last played">
+          {game.last_played_at ? formatDate(game.last_played_at) : "Never"}
+        </StatTile>
+        {installSize !== null ? (
+          <StatTile icon={HardDrive} label="Size">
+            {formatSize(installSize)}
+          </StatTile>
+        ) : null}
       </div>
 
       {details.length > 0 ? (

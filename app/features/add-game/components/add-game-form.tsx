@@ -44,6 +44,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
     game?.executable_path ?? ""
   )
   const [launchArgs, setLaunchArgs] = useState(game?.launch_args ?? "")
+  const [installDir, setInstallDir] = useState(game?.install_dir ?? "")
   const [genres, setGenres] = useState(game?.genres ?? "")
   const [description, setDescription] = useState(game?.description ?? "")
   const [coverUrl, setCoverUrl] = useState<string | null>(
@@ -65,7 +66,16 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
         const fileName = path.split(/[\\/]/).pop() ?? ""
         setName(fileName.replace(/\.exe$/i, ""))
       }
+      if (!installDir) {
+        const dir = path.slice(0, Math.max(path.lastIndexOf("\\"), path.lastIndexOf("/")))
+        if (dir) setInstallDir(dir)
+      }
     }
+  }
+
+  async function pickInstallDir() {
+    const path = await open({ multiple: false, directory: true })
+    if (typeof path === "string") setInstallDir(path)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -83,6 +93,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
         platform,
         executable_path: executablePath.trim(),
         launch_args: launchArgs.trim() || undefined,
+        install_dir: installDir.trim() || undefined,
         genres: genres.trim() || undefined,
         description: description.trim() || undefined,
         cover_url: coverUrl ?? undefined,
@@ -195,6 +206,26 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
           />
         </div>
       ) : null}
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="install-dir">Install directory (optional)</Label>
+        <div className="flex gap-2">
+          <Input
+            id="install-dir"
+            value={installDir}
+            onChange={(e) => setInstallDir(e.target.value)}
+            placeholder="C:\Games\MyGame"
+            className="flex-1"
+          />
+          <Button type="button" variant="outline" onClick={pickInstallDir}>
+            Browse
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Used to detect the game as running when launched through a mod loader or other
+          wrapper — set this to the folder containing the actual game exe.
+        </p>
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <Label>Cover art</Label>

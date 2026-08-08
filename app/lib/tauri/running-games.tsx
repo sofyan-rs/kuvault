@@ -149,6 +149,10 @@ export function useRunningGameIds(): Set<number> {
   return useContext(RunningGamesContext)
 }
 
+export function usePendingLaunchIds(): Set<number> {
+  return useContext(PendingLaunchContext)
+}
+
 export function useIsGameLaunching(id: number): boolean {
   const pendingIds = useContext(PendingLaunchContext)
   return pendingIds.has(id)
