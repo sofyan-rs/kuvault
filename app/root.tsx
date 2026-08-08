@@ -18,6 +18,7 @@ import { VirtualKeyboard } from "./lib/gamepad/virtual-keyboard"
 import { RunningGamesProvider } from "./lib/tauri/running-games"
 import { SplashScreen } from "./components/splash-screen"
 import { ApplyLaunchFullscreen } from "./lib/settings/apply-launch-fullscreen"
+import { UpdateChecker } from "./features/settings/components/update-checker"
 import { themeInitScript } from "./lib/settings/theme"
 import { uiScaleInitScript } from "./lib/settings/ui-scale"
 
@@ -55,6 +56,7 @@ export default function App() {
   return (
     <main data-ui-scroll-container>
       <ApplyLaunchFullscreen />
+      <UpdateChecker />
       <Outlet />
     </main>
   )

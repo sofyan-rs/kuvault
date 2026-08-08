@@ -8,11 +8,15 @@ mod commands;
 mod plugins;
 mod services;
 
-use commands::launcher::{focus_main_window, focus_running_game, launch_game, stop_game};
+use commands::launcher::{
+    focus_main_window, focus_running_game, get_install_size, launch_game, stop_game,
+};
 use commands::misc::greet;
 use commands::power::{exit_app, system_restart, system_shutdown, system_sleep};
 use commands::scan::{scan_epic, scan_steam};
-use commands::settings::{get_run_as_admin, is_running_elevated, set_run_as_admin};
+use commands::settings::{
+    get_run_as_admin, is_portable_install, is_running_elevated, set_run_as_admin,
+};
 use commands::steam::{get_steam_owned_playtimes, resolve_steam_vanity_url};
 use commands::steamgriddb::{search_steamgriddb_covers, steamgriddb_cover_for_steam_appid};
 use plugins::external_navigation::external_navigation_plugin;
@@ -43,6 +47,8 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             None,
@@ -68,6 +74,7 @@ pub fn run() {
                             let _ = window.show();
                             let _ = window.unminimize();
                             let _ = window.set_focus();
+                            std::thread::spawn(services::ram_optimizer::restore_own_webview);
                         }
                     }
                     "exit" => app.exit(0),
@@ -85,6 +92,7 @@ pub fn run() {
                             let _ = window.show();
                             let _ = window.unminimize();
                             let _ = window.set_focus();
+                            std::thread::spawn(services::ram_optimizer::restore_own_webview);
                         }
                     }
                 })
@@ -122,13 +130,15 @@ pub fn run() {
             stop_game,
             focus_running_game,
             focus_main_window,
+            get_install_size,
             system_sleep,
             system_shutdown,
             system_restart,
             exit_app,
             get_run_as_admin,
             set_run_as_admin,
-            is_running_elevated
+            is_running_elevated,
+            is_portable_install
         ])
         .on_page_load(|webview, payload| {
             if webview.label() == "main" && matches!(payload.event(), PageLoadEvent::Finished) {

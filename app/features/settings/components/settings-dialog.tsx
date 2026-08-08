@@ -29,6 +29,7 @@ import {
 } from "./steamgriddb-key-form"
 import { ThemeSelect } from "./theme-select"
 import { UiScaleSlider } from "./ui-scale-slider"
+import { UpdateCheckButton } from "./update-check-button"
 
 interface Props {
   open: boolean
@@ -96,6 +97,7 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
           <GamepadHomeToggle />
           <RamOptimizeToggle />
           <RunAsAdminToggle />
+          <UpdateCheckButton />
           <SteamGridDbKeyForm
             value={gridDbKey}
             onChange={setGridDbKey}
