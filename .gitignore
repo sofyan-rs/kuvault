@@ -9,3 +9,4 @@ build
 # typescript
 *.tsbuildinfo
 .claude
+video
