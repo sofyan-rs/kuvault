@@ -1,7 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "KuVault",
-  "version": "1.0.3",
+  "mainBinaryName": "KuVault",
+  "version": "1.0.4",
   "identifier": "KuVault",
   "build": {
     "beforeDevCommand": "bun run dev",
