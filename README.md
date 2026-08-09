@@ -4,7 +4,7 @@ Desktop game library manager for Windows. Unifies Steam, Epic, and manually-adde
 
 ## Demo
 
-[![Demo video](https://img.youtube.com/vi/rZ45DDwV2T8/maxresdefault.jpg)](https://www.youtube.com/watch?v=rZ45DDwV2T8)
+[Video Demo](https://www.youtube.com/watch?v=rZ45DDwV2T8)
 
 ## Screenshots
 
