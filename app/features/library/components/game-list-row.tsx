@@ -41,7 +41,7 @@ export function GameListRow({
   onUpdateGame: (id: number, patch: Partial<Game>) => void
 }) {
   const isRunning = useIsGameRunning(game.id)
-  const { launch, launching, stop, continueGame, launchConflict } = useLaunchGame(game)
+  const { launch, launching, stop, stopping, continueGame, launchConflict } = useLaunchGame(game)
   const [editOpen, setEditOpen] = useState(false)
 
   async function handleFavorite() {
@@ -101,6 +101,7 @@ export function GameListRow({
                 size="icon-sm"
                 variant="destructive"
                 onClick={stop}
+                disabled={stopping}
                 aria-label="Stop"
               >
                 <Square className="size-3.5 fill-current" />

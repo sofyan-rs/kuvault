@@ -139,7 +139,7 @@ function GameCarouselActions({
   onUpdateGame: (id: number, patch: Partial<Game>) => void
 }) {
   const isRunning = useIsGameRunning(game.id)
-  const { launch, launching, stop, continueGame, launchConflict } = useLaunchGame(game)
+  const { launch, launching, stop, stopping, continueGame, launchConflict } = useLaunchGame(game)
 
   async function handleFavorite() {
     const next = game.is_favorite === 0
@@ -164,6 +164,7 @@ function GameCarouselActions({
             size="icon-sm"
             variant="destructive"
             onClick={stop}
+            disabled={stopping}
             aria-label="Stop"
           >
             <Square className="size-3.5 fill-current" />

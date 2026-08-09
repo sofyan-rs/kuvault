@@ -27,12 +27,15 @@ pub fn launch_game(
     )
 }
 
-#[tauri::command]
+// Async: stop() can block for several seconds (WM_CLOSE grace period before a hard kill) — a
+// sync command runs on the main thread and would freeze the whole UI for that long.
+#[tauri::command(async)]
 pub fn stop_game(id: i64, install_dir: Option<String>) -> Result<(), String> {
     launcher::stop(id, install_dir)
 }
 
-#[tauri::command]
+// Async: does a full process-list refresh and EnumWindows call, same main-thread freeze risk.
+#[tauri::command(async)]
 pub fn focus_running_game(id: i64) -> Result<(), String> {
     launcher::focus_running_window(id)
 }
@@ -56,7 +59,9 @@ pub fn get_install_size(install_dir: String) -> Result<u64, String> {
     dir_size(std::path::Path::new(&install_dir)).map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+// Async: minimize_running_windows() does a full process-list refresh plus an EnumWindows call
+// per tracked game, same main-thread freeze risk as the other window-touching commands above.
+#[tauri::command(async)]
 pub fn focus_main_window(app: tauri::AppHandle) -> Result<(), String> {
     launcher::minimize_running_windows();
 

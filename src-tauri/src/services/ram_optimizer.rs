@@ -20,6 +20,13 @@ pub fn optimize_before_launch(skip_pids: Vec<u32>) {
         .process(Pid::from_u32(our_pid))
         .and_then(|p| p.session_id());
 
+    // Also skip any process with a visible fullscreen window right now (and, via the ancestor
+    // walk below, its helper processes — anti-cheat, voice/audio — which own no window of their
+    // own but would still stutter the game if trimmed). Covers games running outside KuVault's
+    // own tracking, e.g. a second game the user launched manually.
+    let mut skip_pids = skip_pids;
+    skip_pids.extend(crate::services::windows_ui::fullscreen_pids());
+
     let skip: Vec<Pid> = skip_pids.into_iter().map(Pid::from_u32).collect();
     let is_skipped = |pid: Pid| -> bool {
         let mut current = Some(pid);

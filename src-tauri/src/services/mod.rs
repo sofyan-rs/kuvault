@@ -6,3 +6,4 @@ pub mod ram_optimizer;
 pub mod scanners;
 pub mod steam_api;
 pub mod steamgriddb;
+pub mod windows_ui;

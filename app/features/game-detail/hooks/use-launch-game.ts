@@ -45,6 +45,7 @@ export function useLaunchGame(game: Game) {
   const pendingIds = usePendingLaunchIds()
   const [conflicts, setConflicts] = useState<ConflictingGame[] | null>(null)
   const [resolving, setResolving] = useState(false)
+  const [stopping, setStopping] = useState(false)
 
   async function syncSteamPlaytime() {
     if (game.platform !== "steam" || !game.source_id) return
@@ -120,15 +121,20 @@ export function useLaunchGame(game: Game) {
     const others = conflicts ?? []
     setResolving(true)
     try {
-      for (const other of others) {
-        try {
-          await trackedInvoke("stop_game", { id: other.id, installDir: other.installDir })
-        } catch {
-          // Already stopped, or never had a tracked pid (e.g. a still-pending launch) — either
-          // way there's nothing left to kill, so don't block the new launch on it.
-        }
-        cancelLaunch(other.id)
-      }
+      // Run stops concurrently, not sequentially — stop_game now waits out a WM_CLOSE grace
+      // period (up to a few seconds) per game, and doing that one game at a time would multiply
+      // the wait by the number of conflicting games instead of paying it once.
+      await Promise.all(
+        others.map(async (other) => {
+          try {
+            await trackedInvoke("stop_game", { id: other.id, installDir: other.installDir })
+          } catch {
+            // Already stopped, or never had a tracked pid (e.g. a still-pending launch) — either
+            // way there's nothing left to kill, so don't block the new launch on it.
+          }
+          cancelLaunch(other.id)
+        }),
+      )
     } finally {
       setResolving(false)
       setConflicts(null)
@@ -149,10 +155,15 @@ export function useLaunchGame(game: Game) {
   }
 
   async function stop() {
+    setStopping(true)
     try {
+      // stop_game now waits out a WM_CLOSE grace period before force-killing, so this can take
+      // a few seconds — `stopping` lets the Stop button reflect that instead of looking dead.
       await trackedInvoke("stop_game", { id: game.id, installDir: game.install_dir })
     } catch (err) {
       toast.error(toErrorMessage(err))
+    } finally {
+      setStopping(false)
     }
   }
 
@@ -164,5 +175,5 @@ export function useLaunchGame(game: Game) {
     }
   }
 
-  return { launch, launching, stop, continueGame, launchConflict }
+  return { launch, launching, stop, stopping, continueGame, launchConflict }
 }

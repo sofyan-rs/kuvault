@@ -97,7 +97,7 @@ interface Props {
 }
 
 export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
-  const { launch, launching, stop, continueGame, launchConflict } = useLaunchGame(game)
+  const { launch, launching, stop, stopping, continueGame, launchConflict } = useLaunchGame(game)
   const isRunning = useIsGameRunning(game.id)
   const [isFavorite, setIsFavorite] = useState(!!game.is_favorite)
   const [installSize, setInstallSize] = useState<number | null>(null)
@@ -227,11 +227,12 @@ export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
                 </Button>
                 <Button
                   onClick={stop}
+                  disabled={stopping}
                   variant="destructive"
                   className="h-10 gap-2 px-8"
                 >
                   <Square className="size-4 fill-current" />
-                  Stop
+                  {stopping ? "Stopping..." : "Stop"}
                 </Button>
               </>
             ) : (
