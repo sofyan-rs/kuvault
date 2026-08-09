@@ -84,7 +84,7 @@ jobs:
           releaseBody: |
             See the assets below to download this version.
             The Windows portable executable requires the Microsoft Edge WebView2 Runtime.
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           generateReleaseNotes: true
           retryAttempts: 2
