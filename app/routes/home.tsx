@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react"
 
+import { CarouselBackdrop } from "~/features/library/components/carousel-backdrop"
 import { LibraryGrid } from "~/features/library/components/library-grid"
 import { LibrarySidebar } from "~/features/library/components/library-sidebar"
 import { LibraryToolbar } from "~/features/library/components/library-toolbar"
@@ -72,13 +73,7 @@ export default function Home() {
 
   return (
     <div className="relative flex h-svh">
-      {view === "carousel" && carouselActiveGame?.cover_url ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center opacity-30 blur-2xl transition-[background-image] duration-500"
-          style={{ backgroundImage: `url(${carouselActiveGame.cover_url})` }}
-        />
-      ) : null}
+      {view === "carousel" ? <CarouselBackdrop imageUrl={carouselActiveGame?.cover_url} /> : null}
 
       <LibrarySidebar filter={filter} onFilterChange={setFilter} games={games} />
 
