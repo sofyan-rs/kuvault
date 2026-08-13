@@ -5,7 +5,7 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct ScannedGame {
-    pub name: String,
+    pub title: String,
     pub platform: String,
     pub executable_path: String,
     pub install_dir: String,

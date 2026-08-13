@@ -24,7 +24,7 @@ function toErrorMessage(err: unknown): string {
 
 export interface ConflictingGame {
   id: number
-  name: string
+  title: string
   installDir: string | null
 }
 
@@ -106,7 +106,7 @@ export function useLaunchGame(game: Game) {
     setConflicts(
       [...others].map((id, i) => ({
         id,
-        name: rows[i]?.name ?? "Another game",
+        title: rows[i]?.title ?? "Another game",
         installDir: rows[i]?.install_dir ?? null,
       })),
     )
@@ -148,7 +148,7 @@ export function useLaunchGame(game: Game) {
       if (!open && !resolving) setConflicts(null)
     },
     games: conflicts ?? [],
-    targetName: game.name,
+    targetName: game.title,
     busy: resolving,
     onLaunchAnyway,
     onCloseOthersAndLaunch,

@@ -72,7 +72,7 @@ pub fn scan() -> Vec<ScannedGame> {
         );
 
         games.push(ScannedGame {
-            name: manifest.display_name,
+            title: manifest.display_name,
             platform: "epic".to_string(),
             executable_path,
             install_dir: manifest.install_location,

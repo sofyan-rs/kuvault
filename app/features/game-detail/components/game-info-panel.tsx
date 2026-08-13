@@ -126,7 +126,7 @@ export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
 
   async function handleDelete() {
     await deleteGame(game.id)
-    toast.success(`${game.name} removed`)
+    toast.success(`${game.title} removed`)
     onDeleted()
   }
 
@@ -166,7 +166,7 @@ export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
                 className="size-10 text-muted-foreground/60"
               />
               <span className="text-lg font-medium text-muted-foreground">
-                {game.name}
+                {game.title}
               </span>
             </div>
           )}
@@ -182,7 +182,7 @@ export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
 
           <div>
             <h1 className="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl lg:text-5xl">
-              {game.name}
+              {game.title}
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {genreTags.map((tag) => (
@@ -283,7 +283,7 @@ export function GameInfoPanel({ game, onDeleted, onEdit }: Props) {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Remove {game.name}?</AlertDialogTitle>
+                  <AlertDialogTitle>Remove {game.title}?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This removes the game from your library. This can&apos;t be undone.
                   </AlertDialogDescription>

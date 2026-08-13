@@ -55,5 +55,11 @@ pub fn migrations() -> Vec<Migration> {
             sql: include_str!("../../migrations/0003_add_run_as_admin.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "rename name column to title",
+            sql: include_str!("../../migrations/0004_rename_name_to_title.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }

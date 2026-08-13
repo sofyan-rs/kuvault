@@ -2,7 +2,7 @@ export type Platform = "steam" | "epic" | "manual" | "emulator"
 
 export interface Game {
   id: number
-  name: string
+  title: string
   platform: Platform
   executable_path: string
   launch_args: string | null
@@ -18,7 +18,7 @@ export interface Game {
   created_at: string
 }
 
-export type NewGame = Pick<Game, "name" | "platform" | "executable_path"> &
+export type NewGame = Pick<Game, "title" | "platform" | "executable_path"> &
   Partial<
     Pick<
       Game,

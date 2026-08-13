@@ -28,11 +28,12 @@ export function useFilteredGames({ games, filter, genre, search, sort }: Options
 
     if (search.trim()) {
       const query = search.trim().toLowerCase()
-      result = result.filter((g) => g.name.toLowerCase().includes(query))
+      result = result.filter((g) => g.title.toLowerCase().includes(query))
     }
 
     result = [...result].sort((a, b) => {
-      if (sort === "name") return a.name.localeCompare(b.name)
+      if (sort === "name") return a.title.localeCompare(b.title)
+      if (sort === "name-desc") return b.title.localeCompare(a.title)
       if (sort === "playtime") return b.playtime_seconds - a.playtime_seconds
       // recent
       return (b.last_played_at ?? "").localeCompare(a.last_played_at ?? "")

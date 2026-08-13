@@ -18,7 +18,7 @@ function getDb() {
 
 export async function listGames() {
   const db = await getDb()
-  return db.select<Game[]>("SELECT * FROM games ORDER BY name COLLATE NOCASE")
+  return db.select<Game[]>("SELECT * FROM games ORDER BY title COLLATE NOCASE")
 }
 
 export async function getGame(id: number) {
@@ -30,10 +30,10 @@ export async function getGame(id: number) {
 export async function addGame(game: NewGame) {
   const db = await getDb()
   const result = await db.execute(
-    `INSERT INTO games (name, platform, executable_path, launch_args, install_dir, source_id, cover_url, genres, description, run_as_admin)
+    `INSERT INTO games (title, platform, executable_path, launch_args, install_dir, source_id, cover_url, genres, description, run_as_admin)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
-      game.name,
+      game.title,
       game.platform,
       game.executable_path,
       game.launch_args ?? null,

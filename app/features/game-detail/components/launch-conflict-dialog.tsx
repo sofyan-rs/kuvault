@@ -23,7 +23,7 @@ export function LaunchConflictDialog({
   onCloseOthersAndLaunch,
 }: LaunchConflictState) {
   const many = games.length > 1
-  const otherLabel = many ? `${games.length} other games are` : `${games[0]?.name ?? "Another game"} is`
+  const otherLabel = many ? `${games.length} other games are` : `${games[0]?.title ?? "Another game"} is`
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>

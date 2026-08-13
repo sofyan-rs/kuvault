@@ -1,5 +1,5 @@
 export interface ScannedGame {
-  name: string
+  title: string
   platform: "steam" | "epic"
   executable_path: string
   install_dir: string

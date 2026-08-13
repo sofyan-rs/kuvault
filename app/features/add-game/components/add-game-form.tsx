@@ -39,12 +39,17 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
   const isEditing = Boolean(game)
   const isScanned = game?.platform === "steam" || game?.platform === "epic"
 
-  const [name, setName] = useState(game?.name ?? "")
+  const [title, setTitle] = useState(game?.title ?? "")
   const [platform, setPlatform] = useState<Platform>(game?.platform ?? "manual")
   const [executablePath, setExecutablePath] = useState(
     game?.executable_path ?? ""
   )
-  const [launchArgs, setLaunchArgs] = useState(game?.launch_args ?? "")
+  const initialArgs = game?.launch_args ?? ""
+  const initialMatch = initialArgs.match(/^(.*?)\s*"([^"]+)"\s*$/)
+  const [launchArgs, setLaunchArgs] = useState(
+    initialMatch ? initialMatch[1] : initialArgs
+  )
+  const [romPath, setRomPath] = useState(initialMatch ? initialMatch[2] : "")
   const [installDir, setInstallDir] = useState(game?.install_dir ?? "")
   const [genres, setGenres] = useState(game?.genres ?? "")
   const [description, setDescription] = useState(game?.description ?? "")
@@ -63,9 +68,9 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
     })
     if (typeof path === "string") {
       setExecutablePath(path)
-      if (!name) {
+      if (!title) {
         const fileName = path.split(/[\\/]/).pop() ?? ""
-        setName(fileName.replace(/\.exe$/i, ""))
+        setTitle(fileName.replace(/\.exe$/i, ""))
       }
       if (!installDir) {
         const dir = path.slice(
@@ -84,7 +89,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !executablePath.trim()) {
+    if (!title.trim() || !executablePath.trim()) {
       setError("Name and executable path are required")
       return
     }
@@ -92,11 +97,18 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
     setSubmitting(true)
     setError(null)
     try {
+      const combinedArgs =
+        platform === "emulator"
+          ? [launchArgs.trim(), romPath.trim() ? `"${romPath.trim()}"` : ""]
+              .filter(Boolean)
+              .join(" ")
+          : launchArgs.trim()
+
       const patch = {
-        name: name.trim(),
+        title: title.trim(),
         platform,
         executable_path: executablePath.trim(),
-        launch_args: launchArgs.trim() || undefined,
+        launch_args: combinedArgs || undefined,
         install_dir: installDir.trim() || undefined,
         genres: genres.trim() || undefined,
         description: description.trim() || undefined,
@@ -106,12 +118,12 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
 
       if (game) {
         await updateGame(game.id, patch)
-        toast.success(`${patch.name} updated`)
+        toast.success(`${patch.title} updated`)
         if (onSaved) onSaved(game.id)
         else navigate(`/games/${game.id}`)
       } else {
         const id = await addGame(patch)
-        toast.success(`${patch.name} added to library`)
+        toast.success(`${patch.title} added to library`)
         if (onSaved && id) onSaved(id)
         else if (!onSaved) navigate(id ? `/games/${id}` : "/")
       }
@@ -162,11 +174,11 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="title">Title</Label>
         <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="Game Title"
           required
         />
@@ -194,21 +206,42 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
 
       {!isScanned ? (
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="launch-args">
-            {platform === "emulator"
-              ? "ROM path (launch argument)"
-              : "Custom launch arguments"}
-          </Label>
+          <Label htmlFor="launch-args">Launch arguments (optional)</Label>
           <Input
             id="launch-args"
             value={launchArgs}
             onChange={(e) => setLaunchArgs(e.target.value)}
             placeholder={
               platform === "emulator"
-                ? "C:\\ROMs\\game.gba"
+                ? "--fullscreen"
                 : '--launch "E:\\Games\\...\\P3R.exe"'
             }
           />
+        </div>
+      ) : null}
+
+      {!isScanned && platform === "emulator" ? (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="rom-path">ROM path</Label>
+          <div className="flex gap-2">
+            <Input
+              id="rom-path"
+              value={romPath}
+              onChange={(e) => setRomPath(e.target.value)}
+              placeholder="E:\Games\ROMs\game.nsp"
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={async () => {
+                const path = await open({ multiple: false, directory: false })
+                if (typeof path === "string") setRomPath(path)
+              }}
+            >
+              Browse
+            </Button>
+          </div>
         </div>
       ) : null}
 
@@ -236,7 +269,7 @@ export function AddGameForm({ game, onSaved, onCancel }: Props) {
       <div className="flex flex-col gap-1.5">
         <Label>Cover art</Label>
         <CoverPicker
-          defaultQuery={name}
+          defaultQuery={title}
           coverUrl={coverUrl}
           onSelect={setCoverUrl}
         />

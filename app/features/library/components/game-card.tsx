@@ -30,13 +30,13 @@ export function GameCard({ game }: { game: Game }) {
         />
       ) : (
         <div className="flex size-full items-center justify-center px-3 text-center text-sm font-medium text-muted-foreground">
-          {game.name}
+          {game.title}
         </div>
       )}
 
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-linear-to-t from-black/85 via-black/40 to-transparent p-3 pt-10 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 group-data-[gamepad-active=true]:opacity-100">
         <p className="line-clamp-3 text-sm font-medium text-white">
-          {game.name}
+          {game.title}
         </p>
         <PlatformIcon platform={game.platform} className="size-5 shrink-0 text-white" />
       </div>

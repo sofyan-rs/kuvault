@@ -94,7 +94,7 @@ pub fn scan() -> Vec<ScannedGame> {
                 continue;
             };
 
-            let (Some(appid), Some(name), Some(installdir)) = (
+            let (Some(appid), Some(title), Some(installdir)) = (
                 vdf_value(&text, "appid"),
                 vdf_value(&text, "name"),
                 vdf_value(&text, "installdir"),
@@ -102,7 +102,7 @@ pub fn scan() -> Vec<ScannedGame> {
                 continue;
             };
 
-            if is_non_game_entry(&name) {
+            if is_non_game_entry(&title) {
                 continue;
             }
 
@@ -113,7 +113,7 @@ pub fn scan() -> Vec<ScannedGame> {
                 .to_string();
 
             games.push(ScannedGame {
-                name,
+                title,
                 platform: "steam".to_string(),
                 executable_path: format!("steam://rungameid/{}", appid),
                 install_dir,

@@ -52,7 +52,7 @@ export function GameListRow({
 
   async function handleDelete() {
     await deleteGame(game.id)
-    toast.success(`${game.name} removed`)
+    toast.success(`${game.title} removed`)
     onChange()
   }
 
@@ -65,7 +65,7 @@ export function GameListRow({
               <img src={game.cover_url} alt="" className="size-full object-cover" />
             ) : null}
           </div>
-          <span className="font-medium">{game.name}</span>
+          <span className="font-medium">{game.title}</span>
         </Link>
       </TableCell>
       <TableCell>
@@ -155,7 +155,7 @@ export function GameListRow({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Remove {game.name}?</AlertDialogTitle>
+                <AlertDialogTitle>Remove {game.title}?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This removes the game from your library. This can&apos;t be undone.
                 </AlertDialogDescription>

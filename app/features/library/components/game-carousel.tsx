@@ -98,7 +98,7 @@ export function GameCarousel({
             {games.map((game) => (
               <div
                 key={game.id}
-                className="w-44 shrink-0"
+                className="w-56 shrink-0"
                 style={{ scrollSnapAlign: "start" }}
                 onMouseEnter={() => setActiveId(game.id)}
                 onFocus={() => setActiveId(game.id)}
@@ -152,7 +152,7 @@ function GameCarouselActions({
       id="carousel-actions"
       className="flex items-center gap-2 self-end rounded-lg border border-border bg-background/90 p-2 shadow-lg"
     >
-      <span className="truncate pl-1 text-sm font-medium">{game.name}</span>
+      <span className="truncate pl-1 text-sm font-medium">{game.title}</span>
 
       {isRunning ? (
         <>

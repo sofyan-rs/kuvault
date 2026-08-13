@@ -87,7 +87,7 @@ export function ScanResultsDialog({
         )
       }
       const covers = await trackedInvoke<{ thumb_url: string }[]>("search_steamgriddb_covers", {
-        query: game.name,
+        query: game.title,
         apiKey,
       })
       return covers[0]?.thumb_url
@@ -130,7 +130,7 @@ export function ScanResultsDialog({
           const coverUrl = coverApiKey ? await fetchCoverUrl(coverApiKey, game) : undefined
 
           const id = await addGame({
-            name: game.name,
+            title: game.title,
             platform: game.platform,
             executable_path: game.executable_path,
             install_dir: game.install_dir,
@@ -145,7 +145,7 @@ export function ScanResultsDialog({
           imported++
         } catch (err) {
           failed++
-          console.error(`Failed to import ${game.name}:`, err)
+          console.error(`Failed to import ${game.title}:`, err)
         }
       }
 
@@ -209,7 +209,7 @@ export function ScanResultsDialog({
                     onCheckedChange={() => toggle(game.source_id)}
                     className="pointer-events-none"
                   />
-                  {game.name}
+                  {game.title}
                 </button>
               ))}
             </div>
