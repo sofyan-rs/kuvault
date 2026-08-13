@@ -37,7 +37,10 @@ export function findNearestInDirection(
 
     const primary = direction === "left" || direction === "right" ? Math.abs(dx) : Math.abs(dy)
     const secondary = direction === "left" || direction === "right" ? Math.abs(dy) : Math.abs(dx)
-    const score = primary + secondary * 2
+    // Heavily penalize the perpendicular axis so same-row/column candidates are strongly
+    // preferred over diagonal jumps into an adjacent row (e.g. left/right within a tab list
+    // shouldn't skip to a button in the row above just because it's a bit closer overall).
+    const score = primary + secondary * 4
 
     if (score < bestScore) {
       bestScore = score

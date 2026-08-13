@@ -14,7 +14,6 @@ import {
 import { SettingsDialog } from "~/features/settings/components/settings-dialog"
 import { PowerDialog } from "./power-dialog"
 import { FocusZone } from "~/lib/gamepad/focus-zone"
-import { useGamepadBumpers } from "~/lib/gamepad/gamepad-navigation-provider"
 import { useFullscreen } from "~/lib/hooks/use-fullscreen"
 import { cn } from "~/lib/utils"
 
@@ -48,7 +47,7 @@ function NavButton({
       onClick={onClick}
       title={collapsed ? String(children) : undefined}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md border-transparent px-2.5 py-1.5 text-left text-sm transition-colors",
+        "flex w-full items-center gap-2 rounded-md border-transparent px-2.5 py-1.5 text-left text-sm outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
         collapsed ? "justify-center border-b-4 px-0" : "border-l-4",
         active
           ? "bg-secondary text-secondary-foreground"
@@ -126,17 +125,6 @@ export function LibrarySidebar({ filter, onFilterChange, games }: Props) {
       return next
     })
   }
-
-  function cycleFilter(step: 1 | -1) {
-    const index = filters.findIndex((f) => f.key === filter)
-    const nextIndex = (index + step + filters.length) % filters.length
-    onFilterChange(filters[nextIndex].key)
-  }
-
-  useGamepadBumpers(
-    () => cycleFilter(-1),
-    () => cycleFilter(1)
-  )
 
   return (
     <aside

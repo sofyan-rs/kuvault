@@ -280,9 +280,25 @@ body {
   }
 }
 
-/* Guarantee a focus ring for gamepad-driven focus even if :focus-visible doesn't apply to programmatic .focus(). Elements with their own gamepad-active style (e.g. game cards) opt out via data-focus-style="border". */
+/* Guarantee a focus ring for gamepad-driven focus even if :focus-visible doesn't apply to programmatic .focus(). Elements with their own gamepad-active style (e.g. game cards) opt out via data-focus-style="border".
+   Uses `outline` instead of the `ring` box-shadow utility: on elements with a translucent, blurred
+   background (backdrop-blur plus a semi-transparent fill), a box-shadow ring composites into a
+   visible seam along one edge. `outline` paints in a separate layer unaffected by backdrop-filter,
+   avoiding that artifact.
+   Applies unconditionally on plain :focus (not scoped to :not(:focus-visible)) so every element
+   gets this same themed indicator — many buttons across the app (e.g. sidebar nav) carry no
+   `focus-visible:` styling of their own, and scoping this out for them left the browser's raw
+   default outline showing instead. Many shared inputs also swap `border-color` to the ring color
+   on `focus-visible:` (see ui/input.tsx, ui/select.tsx, etc.) — left alone, that plus this outline
+   reads as two nested rings, so both the box-shadow ring and that border-color swap are forced off
+   below, leaving this outline as the single indicator while gamepad focus mode is active. */
+body[data-gamepad-focus="true"] :focus {
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
 body[data-gamepad-focus="true"] :focus:not([data-focus-style="border"]) {
-  @apply outline-none ring-2 ring-ring;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 /* Hide mouse cursor while navigating via gamepad; reappears on mousemove (see gamepad-navigation-provider.tsx). */

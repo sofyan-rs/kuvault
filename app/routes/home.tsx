@@ -85,7 +85,6 @@ export default function Home() {
         className={`relative z-10 flex flex-1 flex-col gap-4 overflow-y-auto p-4 scrollbar-custom ${gamepadConnected ? "pb-14 scroll-pb-14" : ""}`}
       >
         <LibraryToolbar
-          count={filteredGames.length}
           search={search}
           onSearchChange={setSearch}
           sort={sort}

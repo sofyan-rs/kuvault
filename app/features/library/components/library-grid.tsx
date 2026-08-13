@@ -45,7 +45,7 @@ export function LibraryGrid({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>Title</TableHead>
               <TableHead>Platform</TableHead>
               <TableHead>Playtime</TableHead>
               <TableHead>Status</TableHead>

@@ -26,20 +26,32 @@ import {
 import { AddGameDialog } from "~/features/add-game/components/add-game-dialog"
 import { ScanResultsDialog } from "~/features/scan/components/scan-results-dialog"
 import { FocusZone } from "~/lib/gamepad/focus-zone"
-import { useRegisterGamepadSearch } from "~/lib/gamepad/gamepad-navigation-provider"
+import {
+  useGamepadBumpers,
+  useIsGamepadConnected,
+  useRegisterGamepadSearch,
+} from "~/lib/gamepad/gamepad-navigation-provider"
 import type { Game } from "~/lib/db/db-types"
 import { cn } from "~/lib/utils"
 
 import type { SortKey, ViewMode } from "../types"
 
 const SORT_LABELS: Record<SortKey, string> = {
-  name: "Name",
-  recent: "Recently played",
-  playtime: "Playtime",
+  name: "Title (A-Z)",
+  "name-desc": "Title (Z-A)",
+  recent: "Recently Played",
+  playtime: "Most Played",
+}
+
+function BumperGlyph({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="flex h-7 min-w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted-foreground/10 text-xs font-semibold text-foreground">
+      {children}
+    </span>
+  )
 }
 
 interface Props {
-  count: number
   search: string
   onSearchChange: (value: string) => void
   sort: SortKey
@@ -54,7 +66,6 @@ interface Props {
 }
 
 export function LibraryToolbar({
-  count,
   search,
   onSearchChange,
   sort,
@@ -70,7 +81,19 @@ export function LibraryToolbar({
   const [scanSteamOpen, setScanSteamOpen] = useState(false)
   const [scanEpicOpen, setScanEpicOpen] = useState(false)
   const [addManuallyOpen, setAddManuallyOpen] = useState(false)
+  const gamepadConnected = useIsGamepadConnected()
   useRegisterGamepadSearch()
+
+  const genreTabs = [null, ...genres]
+  function cycleGenre(step: 1 | -1) {
+    const index = genreTabs.indexOf(activeGenre)
+    const nextIndex = (index + step + genreTabs.length) % genreTabs.length
+    onGenreChange(genreTabs[nextIndex])
+  }
+  useGamepadBumpers(
+    () => cycleGenre(-1),
+    () => cycleGenre(1)
+  )
 
   return (
     <FocusZone id="toolbar" className="flex flex-col gap-3">
@@ -85,10 +108,26 @@ export function LibraryToolbar({
             className="bg-accent/50 pl-8"
           />
         </div>
+
+        <Select value={sort} onValueChange={(v) => onSortChange(v as SortKey)}>
+          <SelectTrigger
+            size="sm"
+            className="h-8! w-44 bg-accent/50 backdrop-blur-sm"
+          >
+            <SelectValue>{(value: SortKey) => SORT_LABELS[value]}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Title (A-Z)</SelectItem>
+            <SelectItem value="name-desc">Title (Z-A)</SelectItem>
+            <SelectItem value="recent">Recently Played</SelectItem>
+            <SelectItem value="playtime">Most Played</SelectItem>
+          </SelectContent>
+        </Select>
+
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger
-              render={<Button size="sm" className="gap-1.5" />}
+              render={<Button size="sm" className="h-auto gap-1.5 py-1" />}
             >
               <Plus className="size-4" />
               Add Game
@@ -129,57 +168,6 @@ export function LibraryToolbar({
             open={scanEpicOpen}
             onOpenChange={setScanEpicOpen}
           />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{count} games</p>
-
-        <div className="flex items-center gap-2">
-          {genres.length > 0 ? (
-            <Select
-              value={activeGenre ?? "all"}
-              onValueChange={(v) => onGenreChange(v === "all" ? null : v)}
-            >
-              <SelectTrigger
-                size="sm"
-                className="w-36 bg-accent/50 backdrop-blur-sm"
-              >
-                <SelectValue>
-                  {(value: string) =>
-                    value === "all" ? "All categories" : value
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {genres.map((genre) => (
-                  <SelectItem key={genre} value={genre}>
-                    {genre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : null}
-
-          <Select
-            value={sort}
-            onValueChange={(v) => onSortChange(v as SortKey)}
-          >
-            <SelectTrigger
-              size="sm"
-              className="w-36 bg-accent/50 backdrop-blur-sm"
-            >
-              <SelectValue>
-                {(value: SortKey) => SORT_LABELS[value]}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="recent">Recently played</SelectItem>
-              <SelectItem value="playtime">Playtime</SelectItem>
-            </SelectContent>
-          </Select>
 
           <div className="flex items-center rounded-md border border-border bg-accent/50 p-0.5 backdrop-blur-sm">
             <button
@@ -224,6 +212,42 @@ export function LibraryToolbar({
           </div>
         </div>
       </div>
+
+      {genres.length > 0 ? (
+        <nav className="flex items-center gap-2">
+          {gamepadConnected ? <BumperGlyph>LB</BumperGlyph> : null}
+          <div className="flex flex-1 items-center justify-center gap-1 overflow-x-auto px-1 py-1">
+            <button
+              type="button"
+              onClick={() => onGenreChange(null)}
+              className={cn(
+                "shrink-0 rounded-full border border-transparent px-3.5 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                activeGenre === null
+                  ? "bg-secondary text-secondary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              All categories
+            </button>
+            {genres.map((genre) => (
+              <button
+                key={genre}
+                type="button"
+                onClick={() => onGenreChange(genre)}
+                className={cn(
+                  "shrink-0 rounded-full border border-transparent px-3.5 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                  activeGenre === genre
+                    ? "bg-secondary text-secondary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {genre}
+              </button>
+            ))}
+          </div>
+          {gamepadConnected ? <BumperGlyph>RB</BumperGlyph> : null}
+        </nav>
+      ) : null}
     </FocusZone>
   )
 }
