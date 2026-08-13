@@ -10,6 +10,7 @@ import {
 import type { Route } from "./+types/root"
 import "./app.css"
 import { ExternalLinkGuard } from "./components/external-link-guard"
+import { ContextMenuGuard } from "./components/context-menu-guard"
 import { DebugPanel } from "./components/debug-panel"
 import { Toaster } from "./components/ui/sonner"
 import { GamepadHintBar } from "./lib/gamepad/gamepad-hint-bar"
@@ -36,6 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         <SplashScreen />
         <ExternalLinkGuard />
+        <ContextMenuGuard />
         {import.meta.env.DEV ? <DebugPanel /> : null}
         <RunningGamesProvider>
           <GamepadNavigationProvider>
